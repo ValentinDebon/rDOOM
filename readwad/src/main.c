@@ -25,7 +25,7 @@ struct readwad_mapping {
 
 struct readwad_lump_type {
 	const char name[8];
-	void (*show)(const struct readwad_mapping *, const struct readwad_args *, const struct wad_lump *);
+	void (*show)(const struct readwad_mapping *, const struct readwad_args *, const struct lump_info *);
 };
 
 static int
@@ -69,48 +69,49 @@ readwad_mapping_deinit(struct readwad_mapping *mapping) {
 }
 
 static void
-readwad_show_lump_pnames(const struct readwad_mapping *mapping, const struct readwad_args *args, const struct wad_lump *lump) {
+readwad_show_lump_PNAMES(const struct readwad_mapping *mapping, const struct readwad_args *args, const struct lump_info *lump_info) {
 	if(!args->show_pnames_lumps) {
 		return;
 	}
 
-	const struct wad_lump_patch_names *patch_names = readwad_at(mapping->address, lump->filepos);
+	const struct lump_PNAMES *PNAMES = readwad_at(mapping->address, WAD_LONG(lump_info->filepos));
 
 	printf("- Patch Names lump %.8s, size: %u, nummappatches: %u\n",
-		lump->name, lump->size, patch_names->nummappatches);
+		lump_info->name, WAD_LONG(lump_info->size), WAD_LONG(PNAMES->nummappatches));
 
-	const char *current = *patch_names->name_p, * const end = *patch_names->name_p + patch_names->nummappatches * sizeof(*patch_names->name_p);
+	const char *current = *PNAMES->name_p,
+		* const end = *PNAMES->name_p + WAD_LONG(PNAMES->nummappatches) * sizeof(*PNAMES->name_p);
 
 	while(current != end) {
 		printf("\t- %.8s\n", current);
-		current += sizeof(*patch_names->name_p);
+		current += sizeof(*PNAMES->name_p);
 	}
 }
 
 static void
-readwad_show_lump_texture(const struct readwad_mapping *mapping, const struct readwad_args *args, const struct wad_lump *lump) {
+readwad_show_lump_TEXTUREx(const struct readwad_mapping *mapping, const struct readwad_args *args, const struct lump_info *lump_info) {
 	if(!args->show_texture_lumps) {
 		return;
 	}
 
-	const struct wad_lump_texture_info *texture_info = readwad_at(mapping->address, lump->filepos);
+	const struct lump_TEXTUREx *TEXTUREx = readwad_at(mapping->address, WAD_LONG(lump_info->filepos));
 
 	printf("- Texture lump %.8s, size: %u, numtextures: %u\n",
-		lump->name, lump->size, texture_info->numtextures);
+		lump_info->name, WAD_LONG(lump_info->size), WAD_LONG(TEXTUREx->numtextures));
 
-	for(uint32_t i = 0; i < texture_info->numtextures; i++) {
-		const struct wad_lump_texture *texture = readwad_at(texture_info, texture_info->offset[i]);
+	for(uint32_t i = 0; i < WAD_LONG(TEXTUREx->numtextures); i++) {
+		const struct lump_TEXTUREx_map_texture *map_texture = readwad_at(TEXTUREx, WAD_LONG(TEXTUREx->offset[i]));
 
 		printf("\t- Texture %.8s, masked: %s, width: %hd, height: %hd, patchcount: %hd\n",
-			texture->name, texture->masked != 0 ? "true" : "false", texture->width, texture->height, texture->patchcount);
+			map_texture->name, map_texture->masked != 0 ? "true" : "false", WAD_SHORT(map_texture->width), WAD_SHORT(map_texture->height), WAD_SHORT(map_texture->patchcount));
 
 		if(args->show_texture_patches) {
-			const struct wad_lump_texture_patch *current = texture->patches,
-				* const end = texture->patches + texture->patchcount;
+			const struct lump_TEXTUREx_map_patch *current = map_texture->patches,
+				* const end = map_texture->patches + WAD_SHORT(map_texture->patchcount);
 
 			while(current != end) {
 				printf("\t\t- Patch originx: %hd, originy: %hd, patch: %hd\n",
-					current->originx, current->originy, current->patch);
+					WAD_SHORT(current->originx), WAD_SHORT(current->originy), WAD_SHORT(current->patch));
 				current++;
 			}
 		}
@@ -119,26 +120,26 @@ readwad_show_lump_texture(const struct readwad_mapping *mapping, const struct re
 
 const struct readwad_lump_type 
 readwad_lump_types[] = {
-	{ "PNAMES"  , readwad_show_lump_pnames },
-	{ "TEXTURE1", readwad_show_lump_texture },
-	{ "TEXTURE2", readwad_show_lump_texture },
+	{ "PNAMES"  , readwad_show_lump_PNAMES },
+	{ "TEXTURE1", readwad_show_lump_TEXTUREx },
+	{ "TEXTURE2", readwad_show_lump_TEXTUREx },
 };
 
 static void
-readwad_show_lump(const struct readwad_mapping *mapping, const struct readwad_args *args, const struct wad_lump *lump) {
+readwad_show_lump(const struct readwad_mapping *mapping, const struct readwad_args *args, const struct lump_info *lump_info) {
 	const struct readwad_lump_type *current = readwad_lump_types,
 		* const end = readwad_lump_types + sizeof(readwad_lump_types) / sizeof(*readwad_lump_types);
 
 	if(args->show_lumps) {
-		printf("- Lump %.8s.\n", lump->name);
+		printf("- Lump %.8s.\n", lump_info->name);
 	}
 
-	while(current != end && strncmp(current->name, lump->name, sizeof(lump->name)) != 0) {
+	while(current != end && strncmp(current->name, lump_info->name, sizeof(lump_info->name)) != 0) {
 		current++;
 	}
 
 	if(current != end) {
-		current->show(mapping, args, lump);
+		current->show(mapping, args, lump_info);
 	}
 }
 
@@ -150,13 +151,13 @@ readwad_show(const char *filename, const struct readwad_args *args) {
 		return;
 	}
 
-	const struct wad_info *info = mapping.address;
+	const struct wad_info *wad_info = mapping.address;
 
 	printf("Mapped WAD file %s.\nType: %.4s, Lumps: %u, Info Table at: %u.\n",
-		filename, info->identification, info->numlumps, info->infotableofs);
+		filename, wad_info->identification, WAD_LONG(wad_info->numlumps), WAD_LONG(wad_info->infotableofs));
 
-	const struct wad_lump *current = readwad_at(mapping.address, info->infotableofs);
-	const struct wad_lump * const end = current + info->numlumps;
+	const struct lump_info *current = readwad_at(mapping.address, WAD_LONG(wad_info->infotableofs));
+	const struct lump_info * const end = current + WAD_LONG(wad_info->numlumps);
 
 	while(current != end) {
 

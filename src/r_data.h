@@ -12,6 +12,8 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the DOOM Source Code License
 // for more details.
 //
+// DESCRIPTION:
+//  Refresh module, data I/O, caching, retrieval of graphics
 //  by name.
 //
 //-----------------------------------------------------------------------------

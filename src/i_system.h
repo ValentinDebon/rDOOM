@@ -12,20 +12,16 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the DOOM Source Code License
 // for more details.
 //
-//
 //-----------------------------------------------------------------------------
 
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
+#include <stdint.h>
 #include <stdnoreturn.h>
 
 #include "d_ticcmd.h"
-#include "d_event.h"
-
-#ifdef __GNUG__
-#pragma interface
-#endif
+#include "i_xcb.h"
 
 // Called by DoomMain.
 void
@@ -74,7 +70,7 @@ I_BaseTiccmd(void);
 
 // Called by M_Responder when quit is selected.
 // Clean exit, displays sell blurb.
-void
+noreturn void
 I_Quit(void);
 
 // Allocates from low memory under dos,

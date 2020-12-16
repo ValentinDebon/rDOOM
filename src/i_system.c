@@ -16,148 +16,103 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include <stdarg.h>
-#include <sys/time.h>
-#include <unistd.h>
+#define _POSIX_THREAD_CPUTIME
 
 #include "doomdef.h"
-#include "m_misc.h"
-#include "i_video.h"
-#include "i_sound.h"
-
-#include "d_net.h"
-#include "g_game.h"
-
-#ifdef __GNUG__
-#pragma implementation "i_system.h"
-#endif
 #include "i_system.h"
 
+#include "i_sound.h"
+#include "g_game.h"
+#include "m_misc.h"
+#include "d_net.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 int mb_used = 6;
+
+void
+I_Init(void) {
+	I_InitSound();
+	I_InitXCB();
+}
+
+byte *
+I_ZoneBase(int *size) {
+
+	*size = mb_used * 1024 * 1024;
+
+	return malloc(*size);
+}
+
+int
+I_GetTime(void) {
+	struct timespec now;
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &now);
+
+	return now.tv_sec * TICRATE + now.tv_nsec * TICRATE / 1000000000;
+}
+
+void
+I_StartFrame(void) {
+}
+
+void
+I_StartTic(void) {
+	xcb_generic_event_t *event;
+
+	while(event = xcb_poll_for_event(i_xcb.connection), event != NULL) {
+		I_PostXCBEvent(event);
+		free(event);
+	}
+
+	// TODO: Grab and center mouse
+}
+
+ticcmd_t *
+I_BaseTiccmd(void) {
+	static ticcmd_t empty;
+
+	return &empty;
+}
+
+noreturn void
+I_Quit(void) {
+	D_QuitNetGame();
+	M_SaveDefaults();
+	exit(EXIT_SUCCESS);
+}
+
+byte *
+I_AllocLow(int length) {
+	return calloc(length, 1);
+}
 
 void
 I_Tactile(int on,
 	int off,
 	int total) {
-	// UNUSED.
 	on = off = total = 0;
 }
 
-ticcmd_t emptycmd;
-ticcmd_t *
-I_BaseTiccmd(void) {
-	return &emptycmd;
-}
-
-int
-I_GetHeapSize(void) {
-	return mb_used * 1024 * 1024;
-}
-
-byte *
-I_ZoneBase(int *size) {
-	*size = mb_used * 1024 * 1024;
-	return (byte *)malloc(*size);
-}
-
-//
-// I_GetTime
-// returns time in 1/70th second tics
-//
-int
-I_GetTime(void) {
-	struct timeval tp;
-	struct timezone tzp;
-	int newtics;
-	static int basetime = 0;
-
-	gettimeofday(&tp, &tzp);
-	if(!basetime)
-		basetime = tp.tv_sec;
-	newtics = (tp.tv_sec - basetime) * TICRATE + tp.tv_usec * TICRATE / 1000000;
-	return newtics;
-}
-
-//
-// I_Init
-//
-void
-I_Init(void) {
-	I_InitSound();
-	//  I_InitGraphics();
-}
-
-//
-// I_Quit
-//
-void
-I_Quit(void) {
-	D_QuitNetGame();
-	I_ShutdownSound();
-	I_ShutdownMusic();
-	M_SaveDefaults();
-	I_ShutdownGraphics();
-	exit(0);
-}
-
-void
-I_WaitVBL(int count) {
-#ifdef SGI
-	sginap(1);
-#else
-#ifdef SUN
-	sleep(0);
-#else
-	usleep(count * (1000000 / 70));
-#endif
-#endif
-}
-
-void
-I_BeginRead(void) {
-}
-
-void
-I_EndRead(void) {
-}
-
-byte *
-I_AllocLow(int length) {
-	byte *mem;
-
-	mem = (byte *)malloc(length);
-	memset(mem, 0, length);
-	return mem;
-}
-
-//
-// I_Error
-//
-extern boolean demorecording;
-
-void
+noreturn void
 I_Error(char *error, ...) {
-	va_list argptr;
+	extern boolean demorecording;
+	va_list ap;
 
-	// Message first.
-	va_start(argptr, error);
+	va_start(ap, error);
 	fprintf(stderr, "Error: ");
-	vfprintf(stderr, error, argptr);
-	fprintf(stderr, "\n");
-	va_end(argptr);
+	vfprintf(stderr, error, ap);
+	fputc('\n', stderr);
+	va_end(ap);
 
-	fflush(stderr);
-
-	// Shutdown. Here might be other errors.
 	if(demorecording)
 		G_CheckDemoStatus();
 
 	D_QuitNetGame();
-	I_ShutdownGraphics();
 
-	exit(-1);
+	exit(EXIT_FAILURE);
 }
+

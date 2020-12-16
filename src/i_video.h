@@ -20,18 +20,11 @@
 
 #include "doomtype.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 // Called by D_DoomMain,
 // determines the hardware configuration
 // and sets up the video mode
 void
 I_InitGraphics(void);
-
-void
-I_ShutdownGraphics(void);
 
 // Takes full 8 bit values.
 void

@@ -43,7 +43,7 @@ D_DoomMain(void);
 
 // Called by IO functions when input is detected.
 void
-D_PostEvent(event_t *ev);
+D_PostEvent(const event_t *ev);
 
 //
 // BASE LEVEL
