@@ -19,21 +19,11 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
-#include "doomdef.h"
-
-// UNIX hack, to be removed.
-#ifdef SNDSERV
-#include <stdio.h>
-extern FILE *sndserver;
-extern char *sndserver_filename;
-#endif
-
-#include "doomstat.h"
 #include "sounds.h"
 
 // Init at program start...
 void
-I_InitSound();
+I_InitSound(void);
 
 // ... update sound buffer and audio device at runtime...
 void
@@ -41,17 +31,13 @@ I_UpdateSound(void);
 void
 I_SubmitSound(void);
 
-// ... shut down and relase at program termination.
-void
-I_ShutdownSound(void);
-
 //
 //  SFX I/O
 //
 
 // Initialize channels?
 void
-I_SetChannels();
+I_SetChannels(void);
 
 // Get raw data lump index for sound descriptor.
 int

@@ -23,6 +23,7 @@
 #include "i_system.h"
 #include "m_swap.h"
 #include "z_zone.h"
+#include "d_event.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "s_sound.h"

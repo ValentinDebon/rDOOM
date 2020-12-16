@@ -344,7 +344,7 @@ static patch_t *items;
 static patch_t *frags;
 
 // Time sucks.
-static patch_t *time;
+static patch_t *witime;
 static patch_t *par;
 static patch_t *sucks;
 
@@ -1307,7 +1307,7 @@ WI_drawStats(void) {
 	V_DrawPatch(SP_STATSX, SP_STATSY + 2 * lh, FB, sp_secret);
 	WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY + 2 * lh, cnt_secret[0]);
 
-	V_DrawPatch(SP_TIMEX, SP_TIMEY, FB, time);
+	V_DrawPatch(SP_TIMEX, SP_TIMEY, FB, witime);
 	WI_drawTime(SCREENWIDTH / 2 - SP_TIMEX, SP_TIMEY, cnt_time);
 
 	if(wbs->epsd < 3) {
@@ -1497,7 +1497,7 @@ WI_loadData(void) {
 	colon = W_CacheLumpName("WICOLON", PU_STATIC);
 
 	// "time"
-	time = W_CacheLumpName("WITIME", PU_STATIC);
+	witime = W_CacheLumpName("WITIME", PU_STATIC);
 
 	// "sucks"
 	sucks = W_CacheLumpName("WISUCKS", PU_STATIC);

@@ -3,38 +3,55 @@
 
 #include <stdint.h>
 
-#define PACKED __attribute__((packed))
+#define WAD __attribute__((packed))
 
-struct PACKED wad_info {
+#ifdef __BIG_ENDIAN__
+static inline uint16_t
+bswap_16(uint16_t value) {
+ return (value << 8) | (value >> 8);
+}
+
+static inline uint32_t
+bswap_32(uint32_t value) {
+ return ((uint32_t)bswap_16(value) << 16) | bswap_16(value >> 16);
+}
+#define WAD_SHORT(x) ((int16_t)bswap_16((x)))
+#define WAD_LONG(x) ((int32_t)bswap_32((x)))
+#else
+#define WAD_SHORT(x) (x)
+#define WAD_LONG(x) (x)
+#endif
+
+struct WAD wad_info {
 	char     identification[4]; /* Either IWAD or PWAD */
 	int32_t  numlumps;
 	int32_t  infotableofs;
 };
 
-struct PACKED wad_lump {
+struct WAD lump_info {
 	int32_t  filepos;
 	int32_t  size;
 	char     name[8];
 };
 
-struct PACKED wad_lump_patch_names {
+struct WAD lump_PNAMES {
 	int32_t nummappatches;
 	char    name_p[][8];
 };
 
-struct PACKED wad_lump_texture_info {
+struct WAD lump_TEXTUREx {
 	int32_t numtextures;
 	int32_t offset[];
 };
 
-struct PACKED wad_lump_texture {
+struct WAD lump_TEXTUREx_map_texture {
 	char     name[8];
 	int32_t  masked; /* boolean */
 	int16_t  width;
 	int16_t  height;
-	uint32_t columndirectory; /* Obsolete */
+	int32_t  columndirectory; /* Obsolete */
 	int16_t  patchcount;
-	struct PACKED wad_lump_texture_patch {
+	struct WAD lump_TEXTUREx_map_patch {
 		int16_t originx;
 		int16_t originy;
 		int16_t patch;

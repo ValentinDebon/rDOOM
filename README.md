@@ -10,4 +10,5 @@ I released the repository at the first runtime error I encountered (not segfault
 - [ ] Replace Xlib by XCB.
 - [ ] Update WAD/Lumps parsing, rewrite structures for portability.
 - [ ] Hunt down awful C hacks.
+- [ ] Regroup global variables in "namespaces" structs.
 
