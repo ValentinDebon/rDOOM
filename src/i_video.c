@@ -48,8 +48,8 @@ I_ShutdownGraphics(void) {
 void
 I_InitGraphics(void) {
 	switch(i_xcb.visualtype->_class) {
-    case XCB_VISUAL_CLASS_TRUE_COLOR:
-    case XCB_VISUAL_CLASS_DIRECT_COLOR:
+	case XCB_VISUAL_CLASS_TRUE_COLOR:
+	case XCB_VISUAL_CLASS_DIRECT_COLOR:
 		printf("I_InitGraphics: Initializing for TrueColor/DirectColor visual\n");
 		break;
 	default:
