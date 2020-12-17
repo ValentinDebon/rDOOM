@@ -38,3 +38,12 @@ However the game crashes soon, demo not compatible and missing lump "HELP2", I g
 Purging the sound system, I now also have sound caching error, before implementing pulseaudio, I might add an OpenAL rough implementation.
 I also have to implement mouse grabing and fullscreen. Surely, must internal work is to be done to avoid spurious segfaults etc...
 
+## Porting to macOS
+- Removed `-DLINUX` in `Makefile` when non Linux.
+- Missing `<values.h>` on the system.
+- Missing references to `<stdarg.h>` in `i_system.c`, `<alloca.h>` in `r_data.c`.
+- Replaced `<malloc.h>` by `<stdlib.h>` in `w_wad.c`.
+
+## Port continuation
+I replaced my .wad by the doom1.wad shareware version 1.9, I had one segfault/zone id error when loading a level,
+turned out it was *once again* a bad allocation size, `p_setup.c`, a linebuffer was allocating an hardcoded 4, but it was a `line_t **`.

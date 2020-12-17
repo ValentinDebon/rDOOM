@@ -1,5 +1,10 @@
 CC=clang
+
+ifeq ($(shell uname -s),Linux)
 CFLAGS=-g -Wall -DNORMALUNIX -DLINUX
+else
+CFLAGS=-g -Wall -DNORMALUNIX
+endif
 
 LD=$(CC)
 LDFLAGS=-lxcb -lxcb-render

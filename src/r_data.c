@@ -20,6 +20,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdint.h>
+#include <alloca.h>
 
 #include "i_system.h"
 #include "z_zone.h"
