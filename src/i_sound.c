@@ -18,7 +18,25 @@
 //-----------------------------------------------------------------------------
 #include "i_sound.h"
 
+#include "i_system.h"
+#include "m_swap.h"
+#include "w_wad.h"
+
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+struct __attribute__((packed)) w_lump_D_x {
+	uint8_t magic[4];
+	uint16_t size;
+	uint16_t offset;
+	uint16_t primary_channels;
+	uint16_t secondary_channels;
+	uint16_t instrument_patches;
+	uint16_t unused; /* zero */
+	uint16_t patches[];
+
+};
 
 static void
 I_ShutdownSound(void) {
@@ -44,7 +62,11 @@ I_SetChannels(void) {
 
 int
 I_GetSfxLumpNum(sfxinfo_t *sfxinfo) {
-	return 0;
+	char buffer[9];
+
+	snprintf(buffer, sizeof(buffer), "ds%s", sfxinfo->name);
+
+	return W_GetNumForName(buffer);
 }
 
 int
@@ -53,7 +75,8 @@ I_StartSound(int id,
 	int sep,
 	int pitch,
 	int priority) {
-	return 0;
+
+	return id;
 }
 
 void
@@ -76,17 +99,20 @@ void
 I_SetMusicVolume(int volume) {
 }
 
-void
-I_PauseSong(int handle) {
-}
-
-void
-I_ResumeSong(int handle) {
-}
-
 int
 I_RegisterSong(void *data) {
+	static const uint8_t magic[] = { 'M', 'U', 'S', 0x1A };
+	const struct w_lump_D_x *music = data;
+
+	if(memcmp(music->magic, magic, sizeof(magic)) != 0) {
+		I_Error("I_RegisterSong: Invalid Music lump");
+	}
+
 	return 0;
+}
+
+void
+I_UnRegisterSong(int handle) {
 }
 
 void
@@ -99,6 +125,10 @@ I_StopSong(int handle) {
 }
 
 void
-I_UnRegisterSong(int handle) {
+I_PauseSong(int handle) {
+}
+
+void
+I_ResumeSong(int handle) {
 }
 

@@ -110,6 +110,7 @@ I_UpdateNoBlit(void) {
 
 void
 I_FinishUpdate(void) {
+	/* Synchronizing framebuffer from client with server */
 	uint8_t image[i_video.framebuffer_stride * i_xcb.framebuffer.height];
 	const uint8_t *framebuffer = screens[0];
 
@@ -131,6 +132,7 @@ I_FinishUpdate(void) {
 		i_xcb.framebuffer.width, i_xcb.framebuffer.height, 0, 0, 0, i_xcb.format->depth,
 		sizeof(image), image);
 
+	/* Ask X Rendering extension to handle composition natively, avoids client resize */
 	xcb_render_composite(i_xcb.connection, XCB_RENDER_PICT_OP_SRC,
 		i_xcb.framebuffer.picture, XCB_RENDER_PICTURE_NONE, i_xcb.window.picture,
 		0, 0, 0, 0, 0, 0, i_xcb.window.width, i_xcb.window.height);
@@ -141,15 +143,16 @@ I_FinishUpdate(void) {
 void
 I_WaitVBL(int count) {
 	struct timespec req = {
-		.tv_nsec = 14285714,
+		.tv_nsec = 14285714 * count,
 	}, rem;
+
+	if(req.tv_nsec > 1000000000) {
+		req.tv_sec = req.tv_nsec / 1000000000;
+		req.tv_nsec %= 1000000000;
+	}
 
 	while(errno = 0, nanosleep(&req, &rem) == -1 && errno == EINTR) {
 		req = rem;
-	}
-
-	if(errno != 0) {
-		I_Error("I_WaitVBL: Error while waiting 1/70th of second: %s", strerror(errno));
 	}
 }
 

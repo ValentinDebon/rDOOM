@@ -36,7 +36,7 @@ While adding event handling, I also added `const` qualifiers on the `D_PostEvent
 Finally, I got a game and I can resize the window at will.
 However the game crashes soon, demo not compatible and missing lump "HELP2", I guess recent wads are too much incompatible with the old ones.
 Purging the sound system, I now also have sound caching error, before implementing pulseaudio, I might add an OpenAL rough implementation.
-I also have to implement mouse grabing and fullscreen. Surely, must internal work is to be done to avoid spurious segfaults etc...
+I also have to implement mouse grabing and fullscreen. Surely, more internal work is to be done to avoid spurious segfaults etc...
 
 ## Porting to macOS
 - Removed `-DLINUX` in `Makefile` when non Linux.
@@ -47,3 +47,9 @@ I also have to implement mouse grabing and fullscreen. Surely, must internal wor
 ## Port continuation
 I replaced my .wad by the doom1.wad shareware version 1.9, I had one segfault/zone id error when loading a level,
 turned out it was *once again* a bad allocation size, `p_setup.c`, a linebuffer was allocating an hardcoded 4, but it was a `line_t **`.
+Added grabing, hidden cursor, resize, and center to screen (should be window manager agnostic).
+Finished E1M1! Game crashed, it was that `time` variable, I missed one in a `Z_ChangeTag` and the game crashed.
+Looked at DOOM music/sound handling, big mess. Won't implement an OpenAL, go directly to pulseaudio. But I'd need a MUS to PCM converter.
+Also, I commented this annoying warning from `s_sound.c` regarding 16 bit not being pre-cached (we are not DOS anyway).
+Another warning concerning "Demo is from a different game version" was here, not playing demos on title screen.
+I modified the condition from different to greater than engine one. Didn't seem to break a thing, allows them to run.

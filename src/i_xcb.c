@@ -20,10 +20,12 @@
 
 #include "doomdef.h"
 #include "i_system.h"
+#include "m_argv.h"
 #include "d_main.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #define X_KEYSYM_SPECIAL_NOSYMBOL   0x00000000
@@ -65,12 +67,12 @@
 
 struct i_xcb i_xcb = {
 	.window = {
-		.width = 640,
-		.height = 400,
+		.width = SCREENWIDTH,
+		.height = SCREENHEIGHT,
 	},
 	.framebuffer = {
-		.width = 320,
-		.height = 200,
+		.width = SCREENWIDTH,
+		.height = SCREENHEIGHT,
 	},
 };
 
@@ -100,15 +102,36 @@ I_SetXCBKeyboardMappingFrom(xcb_get_keyboard_mapping_cookie_t get_keyboard_mappi
 
 static void
 I_ShutdownXCB(void) {
-	xcb_render_free_picture(i_xcb.connection, i_xcb.window.picture);
 	xcb_render_free_picture(i_xcb.connection, i_xcb.framebuffer.picture);
-	xcb_destroy_window(i_xcb.connection, i_xcb.window.drawable);
+	xcb_render_free_picture(i_xcb.connection, i_xcb.window.picture);
 	xcb_free_pixmap(i_xcb.connection, i_xcb.framebuffer.drawable);
+	xcb_destroy_window(i_xcb.connection, i_xcb.window.drawable);
+	xcb_free_cursor(i_xcb.connection, i_xcb.cursor);
+	xcb_free_gc(i_xcb.connection, i_xcb.graphic_context);
 	xcb_disconnect(i_xcb.connection);
 }
 
 void
 I_InitXCB(void) {
+	/* Arguments */
+
+	if(M_CheckParm("-2") != 0) {
+		i_xcb.window.width = SCREENWIDTH * 2;
+		i_xcb.window.height = SCREENHEIGHT * 2;
+	}
+
+	if(M_CheckParm("-3") != 0) {
+		i_xcb.window.width = SCREENWIDTH * 3;
+		i_xcb.window.height = SCREENHEIGHT * 3;
+	}
+
+	if(M_CheckParm("-4") != 0) {
+		i_xcb.window.width = SCREENWIDTH * 4;
+		i_xcb.window.height = SCREENHEIGHT * 4;
+	}
+
+	i_xcb.grab_mouse = M_CheckParm("-grabmouse") != 0;
+
 	/* Let's connect to X11 */
 	int screen_number;
 
@@ -176,6 +199,25 @@ I_InitXCB(void) {
 	xcb_create_gc(i_xcb.connection, i_xcb.graphic_context, i_xcb.screen->root,
 		XCB_GC_FOREGROUND, &i_xcb.screen->white_pixel);
 
+	/* Create our (hidden) cursor */
+	i_xcb.cursor = xcb_generate_id(i_xcb.connection);
+
+	xcb_pixmap_t cursor_pixmap = xcb_generate_id(i_xcb.connection); /* Pixmap used both as source and mask, should be black */
+	xcb_create_pixmap(i_xcb.connection, 1, cursor_pixmap, i_xcb.screen->root, 1, 1);
+
+	xcb_gcontext_t cursor_graphic_context = xcb_generate_id(i_xcb.connection); /* Black 1 bit depth GC */
+	xcb_create_gc(i_xcb.connection, cursor_graphic_context, cursor_pixmap,
+		XCB_GC_FOREGROUND, &i_xcb.screen->black_pixel);
+
+	const xcb_rectangle_t cursor_rectangle = { .width = 1, .height = 1 }; /* Drawing the pixmap black */
+	xcb_poly_fill_rectangle(i_xcb.connection, cursor_pixmap, cursor_graphic_context, 1, &cursor_rectangle);
+
+	xcb_create_cursor(i_xcb.connection, i_xcb.cursor, cursor_pixmap, cursor_pixmap,
+		0, 0, 0, 0, 0, 0, 0, 0); /* As it's used both as source and mask, it masks itself and is then hidden */
+
+	xcb_free_pixmap(i_xcb.connection, cursor_pixmap); /* Can be freed for a cursor */
+	xcb_free_gc(i_xcb.connection, cursor_graphic_context);
+
 	/* Create our window */
 	const uint32_t window_value_list[] = {
 		i_xcb.screen->black_pixel,
@@ -184,16 +226,19 @@ I_InitXCB(void) {
 		XCB_EVENT_MASK_BUTTON_PRESS |
 		XCB_EVENT_MASK_BUTTON_RELEASE |
 		XCB_EVENT_MASK_POINTER_MOTION |
-		XCB_EVENT_MASK_STRUCTURE_NOTIFY
+		XCB_EVENT_MASK_STRUCTURE_NOTIFY,
+		i_xcb.cursor
 	};
+
 	i_xcb.window.drawable = xcb_generate_id(i_xcb.connection);
+
 	xcb_create_window(i_xcb.connection, XCB_COPY_FROM_PARENT,
 		i_xcb.window.drawable, i_xcb.screen->root,
 		0, 0,
 		i_xcb.window.width, i_xcb.window.height,
 		0, XCB_WINDOW_CLASS_COPY_FROM_PARENT,
 		XCB_COPY_FROM_PARENT,
-		XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK,
+		XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK | XCB_CW_CURSOR,
 		window_value_list);
 
 	/* Create our pixmap */
@@ -207,6 +252,14 @@ I_InitXCB(void) {
 	/* - X Render PictFormats cookie */
 	xcb_render_query_pict_formats_cookie_t render_query_pict_formats_cookie
 		= xcb_render_query_pict_formats(i_xcb.connection);
+
+	/* - _NET_WM_STATE atom cookie */
+	xcb_intern_atom_cookie_t _net_wm_state_atom_cookie
+		= xcb_intern_atom(i_xcb.connection, 0, 13, "_NET_WM_STATE");
+
+	/* - _NET_WM_STATE_FULLSCREEN atom cookie */
+	xcb_intern_atom_cookie_t _net_wm_state_fullscreen_atom_cookie
+		= xcb_intern_atom(i_xcb.connection, 0, 24, "_NET_WM_STATE_FULLSCREEN");
 
 	/* - WM_PROTOCOLS atom cookie */
 	xcb_intern_atom_cookie_t wm_protocols_atom_cookie
@@ -230,6 +283,40 @@ I_InitXCB(void) {
 		I_Error("I_InitXCB: Required X Render PictFormats not available");
 	}
 
+	/* - _NET_WM_STATE atom reply */
+	xcb_intern_atom_reply_t *_net_wm_state_atom_reply
+		= xcb_intern_atom_reply(i_xcb.connection, _net_wm_state_atom_cookie, NULL);
+	if(_net_wm_state_atom_reply == NULL) {
+		I_Error("I_InitXCB: _NET_WM_STATE intern Atom error");
+	}
+
+	/* - _NET_WM_STATE_FULLSCREEN atom reply */
+	xcb_intern_atom_reply_t *_net_wm_state_fullscreen_atom_reply
+		= xcb_intern_atom_reply(i_xcb.connection, _net_wm_state_fullscreen_atom_cookie, NULL);
+	if(_net_wm_state_fullscreen_atom_reply == NULL) {
+		I_Error("I_InitXCB: _NET_WM_STATE_FULLSCREEN intern Atom error");
+	}
+
+	/* - WM_PROTOCOLS atom reply */
+	xcb_intern_atom_reply_t *wm_protocols_atom_reply
+		= xcb_intern_atom_reply(i_xcb.connection, wm_protocols_atom_cookie, NULL);
+	if(wm_protocols_atom_reply == NULL) {
+		I_Error("I_InitXCB: WM_PROTOCOLS intern Atom error");
+	}
+
+	/* - WM_DELETE_WINDOW atom reply */
+	xcb_intern_atom_reply_t *wm_delete_window_atom_reply
+		= xcb_intern_atom_reply(i_xcb.connection, wm_delete_window_atom_cookie, NULL);
+	if(wm_delete_window_atom_reply == NULL) {
+		I_Error("I_InitXCB: WM_DELETE_WINDOW  intern Atom error");
+	}
+
+	i_xcb.atoms.wm_delete_window = wm_delete_window_atom_reply->atom;
+
+	/* - Get Keyboard Mapping reply */
+	I_SetXCBKeyboardMappingFrom(get_keyboard_mapping_cookie);
+
+	/* Final setups before start */
 	xcb_render_pictforminfo_iterator_t render_pictforminfo_iterator
 		= xcb_render_query_pict_formats_formats_iterator(render_query_pict_formats_reply);
 
@@ -251,26 +338,7 @@ I_InitXCB(void) {
 		I_Error("I_InitXCB: Unable to find suitable PictFormat for root-depth based drawables");
 	}
 
-	/* - WM_PROTOCOLS atom reply */
-	xcb_intern_atom_reply_t *wm_protocols_atom_reply
-		= xcb_intern_atom_reply(i_xcb.connection, wm_protocols_atom_cookie, NULL);
-	if(wm_protocols_atom_reply == NULL) {
-		I_Error("I_InitXCB: Required WM_PROTOCOLS not available");
-	}
-
-	/* - WM_DELETE_WINDOW atom reply */
-	xcb_intern_atom_reply_t *wm_delete_window_atom_reply
-		= xcb_intern_atom_reply(i_xcb.connection, wm_delete_window_atom_cookie, NULL);
-	if(wm_delete_window_atom_reply == NULL) {
-		I_Error("I_InitXCB: Required WM_DELETE_WINDOW not available");
-	}
-
-	i_xcb.atoms.wm_delete_window = wm_delete_window_atom_reply->atom;
-
-	/* - Get Keyboard Mapping reply */
-	I_SetXCBKeyboardMappingFrom(get_keyboard_mapping_cookie);
-
-	/* We finally have our PictFormats, our drawables, create our pictures */
+	/* - We finally have our PictFormats, our drawables, create our pictures */
 	i_xcb.window.picture = xcb_generate_id(i_xcb.connection);
 	xcb_render_create_picture(i_xcb.connection, i_xcb.window.picture,
 		i_xcb.window.drawable, i_xcb.render_pictforminfo->id, 0, NULL);
@@ -279,7 +347,12 @@ I_InitXCB(void) {
 	xcb_render_create_picture(i_xcb.connection, i_xcb.framebuffer.picture,
 		i_xcb.framebuffer.drawable, i_xcb.render_pictforminfo->id, 0, NULL);
 
-	/* Final setups before start */
+	/* Changing atom properties */
+/* TODO: Fix fullscreen
+	xcb_change_property(i_xcb.connection, XCB_PROP_MODE_REPLACE,
+		i_xcb.window.drawable, _net_wm_state_atom_reply->atom,
+		XCB_ATOM_ATOM, 32, 1, &_net_wm_state_fullscreen_atom_reply->atom);
+*/
 	xcb_change_property(i_xcb.connection, XCB_PROP_MODE_REPLACE,
 		i_xcb.window.drawable, wm_protocols_atom_reply->atom,
 		XCB_ATOM_ATOM, 32, 1, &i_xcb.atoms.wm_delete_window);
@@ -289,6 +362,8 @@ I_InitXCB(void) {
 	xcb_flush(i_xcb.connection);
 
 	free(render_query_pict_formats_reply);
+	free(_net_wm_state_atom_reply);
+	free(_net_wm_state_fullscreen_atom_reply);
 	free(wm_protocols_atom_reply);
 	free(wm_delete_window_atom_reply);
 
@@ -361,130 +436,174 @@ I_XCBKeycodeToKey(xcb_keycode_t keycode) {
 	return key;
 }
 
-void
+int
 I_PostXCBEvent(const xcb_generic_event_t *generic_event) {
-		uint8_t const response_type = generic_event->response_type & ~0x80;
+	uint8_t const response_type = generic_event->response_type & ~0x80;
+	int flushes = 0;
 
-		if(response_type != 0) {
-			switch(response_type) {
-			case XCB_KEY_PRESS: {
-				const xcb_key_press_event_t *key_press_event
-					= (const xcb_key_press_event_t *)generic_event;
-				const event_t event = {
-					.type = ev_keydown,
-					.data1 = I_XCBKeycodeToKey(key_press_event->detail),
-				};
+	if(response_type != 0) {
+		switch(response_type) {
+		case XCB_KEY_PRESS: {
+			const xcb_key_press_event_t *key_press_event
+				= (const xcb_key_press_event_t *)generic_event;
+			const event_t event = {
+				.type = ev_keydown,
+				.data1 = I_XCBKeycodeToKey(key_press_event->detail),
+			};
 
-				if(event.data1 != -1) {
-					D_PostEvent(&event);
-				}
-			}	break;
-			case XCB_KEY_RELEASE: {
-				const xcb_key_release_event_t *key_release_event
-					= (const xcb_key_release_event_t *)generic_event;
-				const event_t event = {
-					.type = ev_keyup,
-					.data1 = I_XCBKeycodeToKey(key_release_event->detail),
-				};
-
-				if(event.data1 != -1) {
-					D_PostEvent(&event);
-				}
-			}	break;
-			case XCB_BUTTON_PRESS: {
-				const xcb_button_press_event_t *button_press_event
-					= (const xcb_button_press_event_t *)generic_event;
-				const event_t event = {
-					.type = ev_mouse,
-					.data1 = (button_press_event->state >> 8 & 0x07) |
-						1 << (button_press_event->detail - 1 & 0x07),
-				};
-
+			if(event.data1 != -1) {
 				D_PostEvent(&event);
-			}	break;
-			case XCB_BUTTON_RELEASE: {
-				const xcb_button_release_event_t *button_release_event
-					= (const xcb_button_release_event_t *)generic_event;
-				const event_t event = {
-					.type = ev_mouse,
-					.data1 = (button_release_event->state >> 8 & 0x07) ^
-						1 << (button_release_event->detail - 1 & 0x07),
-				};
+			}
+		}	break;
+		case XCB_KEY_RELEASE: {
+			const xcb_key_release_event_t *key_release_event
+				= (const xcb_key_release_event_t *)generic_event;
+			const event_t event = {
+				.type = ev_keyup,
+				.data1 = I_XCBKeycodeToKey(key_release_event->detail),
+			};
 
+			if(event.data1 != -1) {
 				D_PostEvent(&event);
-			}	break;
-			case XCB_MOTION_NOTIFY: {
-				static int16_t lastx, lasty;
-				const xcb_motion_notify_event_t *motion_notify_event
-					= (const xcb_motion_notify_event_t *)generic_event;
-				const event_t event = {
-					.type = ev_mouse,
-					.data1 = 1 << (motion_notify_event->detail - 1 & 0x07),
-					.data2 = (motion_notify_event->event_x - lastx) << 2,
-					.data3 = (lasty - motion_notify_event->event_y) << 2,
-				};
+			}
+		}	break;
+		case XCB_BUTTON_PRESS: {
+			const xcb_button_press_event_t *button_press_event
+				= (const xcb_button_press_event_t *)generic_event;
+			const event_t event = {
+				.type = ev_mouse,
+				.data1 = (button_press_event->state >> 8 & 0x07) |
+					1 << (button_press_event->detail - 1 & 0x07),
+			};
+
+			D_PostEvent(&event);
+		}	break;
+		case XCB_BUTTON_RELEASE: {
+			const xcb_button_release_event_t *button_release_event
+				= (const xcb_button_release_event_t *)generic_event;
+			const event_t event = {
+				.type = ev_mouse,
+				.data1 = (button_release_event->state >> 8 & 0x07) ^
+					1 << (button_release_event->detail - 1 & 0x07),
+			};
+
+			D_PostEvent(&event);
+		}	break;
+		case XCB_MOTION_NOTIFY: {
+			static int16_t lastx, lasty;
+			const xcb_motion_notify_event_t *motion_notify_event
+				= (const xcb_motion_notify_event_t *)generic_event;
+			const event_t event = {
+				.type = ev_mouse,
+				.data1 = 1 << (motion_notify_event->detail - 1 & 0x07),
+				.data2 = (motion_notify_event->event_x - lastx) << 2,
+				.data3 = (lasty - motion_notify_event->event_y) << 2,
+			};
+
+			if(event.data2 != 0 || event.data3 != 0) {
 
 				lastx = motion_notify_event->event_x;
 				lasty = motion_notify_event->event_y;
 
-				D_PostEvent(&event);
-			}	break;
-			case XCB_DESTROY_NOTIFY:
-				break;
-			case XCB_UNMAP_NOTIFY:
-				break;
-				break;
-			case XCB_REPARENT_NOTIFY:
-				break;
-			case XCB_CONFIGURE_NOTIFY: {
-				const xcb_configure_notify_event_t *configure_notify_event
-					= (const xcb_configure_notify_event_t *)generic_event;
-
-				i_xcb.window.width = configure_notify_event->width;
-				i_xcb.window.height = configure_notify_event->height;
-			}	/* fallthrough */
-			case XCB_MAP_NOTIFY: {
-				/* When mapping is requested or size changed, set framebuffer picture transform */
-				xcb_render_transform_t transform = {
-					.matrix11 = (float)i_xcb.framebuffer.width / i_xcb.window.width * (1 << 16),
-					.matrix22 = (float)i_xcb.framebuffer.height / i_xcb.window.height * (1 << 16),
-					.matrix33 = 1 << 16,
-				};
-
-				xcb_render_set_picture_transform(i_xcb.connection,
-					i_xcb.framebuffer.picture, transform);
-			}	break;
-			case XCB_GRAVITY_NOTIFY:
-				break;
-			case XCB_CIRCULATE_NOTIFY:
-				break;
-			case XCB_MAPPING_NOTIFY: {
-				const xcb_mapping_notify_event_t *mapping_notify_event
-					= (const xcb_mapping_notify_event_t *)generic_event;
-
-				if(mapping_notify_event->request == XCB_MAPPING_KEYBOARD) { 
-					const xcb_setup_t *setup = xcb_get_setup(i_xcb.connection);
-					/* We could only remap the new mappings, but it's a naive implementation */
-					xcb_get_keyboard_mapping_cookie_t get_keyboard_mapping_cookie
-						= xcb_get_keyboard_mapping(i_xcb.connection, setup->min_keycode,
-							setup->max_keycode - setup->min_keycode + 1);
-
-					/* Synchronous call, but shouldn't happen often */
-					I_SetXCBKeyboardMappingFrom(get_keyboard_mapping_cookie);
+				if(motion_notify_event->event_x != i_xcb.window.width / 2
+					&& motion_notify_event->event_y != i_xcb.window.height / 2) {
+					D_PostEvent(&event);
 				}
-			}	break;
-			case XCB_CLIENT_MESSAGE: {
-				const xcb_client_message_event_t *client_message_event
-					= (const xcb_client_message_event_t *)generic_event;
-
-				if(client_message_event->data.data32[0] == i_xcb.atoms.wm_delete_window) {
-					I_Quit();
-				}
-			}	break;
 			}
-		} else {
-			const xcb_generic_error_t *generic_error = (const xcb_generic_error_t *)generic_event;
-			fprintf(stderr, "I_PostXCBEvent: X11 Error, code: %d\n", generic_error->error_code);
+		}	break;
+		case XCB_DESTROY_NOTIFY:
+			break;
+		case XCB_UNMAP_NOTIFY:
+			break;
+		case XCB_REPARENT_NOTIFY: {
+			const uint32_t configure_window_value_list[] = {
+				(i_xcb.screen->width_in_pixels - i_xcb.window.width) / 2,
+				(i_xcb.screen->height_in_pixels - i_xcb.window.height) / 2,
+			};
+
+			/* Easy way to center the window in the screen, note this could also
+			fail on numerous occasions, such as window embedding */
+			xcb_configure_window(i_xcb.connection, i_xcb.window.drawable,
+				XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, configure_window_value_list);
+
+			flushes = 1;
+		}	break;
+		case XCB_CONFIGURE_NOTIFY: {
+			const xcb_configure_notify_event_t *configure_notify_event
+				= (const xcb_configure_notify_event_t *)generic_event;
+
+			i_xcb.window.width = configure_notify_event->width;
+			i_xcb.window.height = configure_notify_event->height;
+
+			/* When size is changed, set framebuffer picture transform */
+			const xcb_render_transform_t transform = {
+				.matrix11 = (float)i_xcb.framebuffer.width / i_xcb.window.width * (1 << 16),
+				.matrix22 = (float)i_xcb.framebuffer.height / i_xcb.window.height * (1 << 16),
+				.matrix33 = 1 << 16,
+			};
+
+			xcb_render_set_picture_transform(i_xcb.connection,
+				i_xcb.framebuffer.picture, transform);
+
+			flushes = 1;
+		}	break;
+		case XCB_MAP_NOTIFY:
+			/* The pointer can only be grabbed if the window has already been mapped,
+			else a NotViewable error is replied.
+			NB: We don't really need to ungrab it, when our window will be destroyed, it will be automatically released */
+			if(i_xcb.grab_mouse != 0) {
+				/* - Grab Pointer cookie */
+				xcb_grab_pointer_cookie_t grab_pointer_cookie
+					= xcb_grab_pointer(i_xcb.connection, 1 /* owner events */, i_xcb.window.drawable,
+						XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION,
+						XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, i_xcb.window.drawable,
+						XCB_CURSOR_NONE, XCB_CURRENT_TIME);
+
+				/* - Grab Pointer reply */
+				xcb_grab_pointer_reply_t *grab_pointer_reply
+					= xcb_grab_pointer_reply(i_xcb.connection, grab_pointer_cookie, NULL);
+				if(grab_pointer_reply == NULL) {
+					I_Error("I_InitXCB: Request error when trying to grab pointer");
+				}
+
+				if(grab_pointer_reply->status != XCB_GRAB_STATUS_SUCCESS) {
+					I_Error("I_InitXCB: Unable to grab pointer, shouldn't be already grabbed");
+				}
+			}
+			break;
+		case XCB_GRAVITY_NOTIFY:
+			break;
+		case XCB_CIRCULATE_NOTIFY:
+			break;
+		case XCB_MAPPING_NOTIFY: {
+			const xcb_mapping_notify_event_t *mapping_notify_event
+				= (const xcb_mapping_notify_event_t *)generic_event;
+
+			if(mapping_notify_event->request == XCB_MAPPING_KEYBOARD) {
+				const xcb_setup_t *setup = xcb_get_setup(i_xcb.connection);
+				/* We could only remap the new mappings, but it's a naive implementation */
+				xcb_get_keyboard_mapping_cookie_t get_keyboard_mapping_cookie
+					= xcb_get_keyboard_mapping(i_xcb.connection, setup->min_keycode,
+						setup->max_keycode - setup->min_keycode + 1);
+
+				/* Synchronous call, but shouldn't happen often */
+				I_SetXCBKeyboardMappingFrom(get_keyboard_mapping_cookie);
+			}
+		}	break;
+		case XCB_CLIENT_MESSAGE: {
+			const xcb_client_message_event_t *client_message_event
+				= (const xcb_client_message_event_t *)generic_event;
+
+			if(client_message_event->data.data32[0] == i_xcb.atoms.wm_delete_window) {
+				I_Quit();
+			}
+		}	break;
 		}
+	} else {
+		const xcb_generic_error_t *generic_error = (const xcb_generic_error_t *)generic_event;
+		fprintf(stderr, "I_PostXCBEvent: X11 Error, code: %d\n", generic_error->error_code);
+	}
+
+	return flushes;
 }
 

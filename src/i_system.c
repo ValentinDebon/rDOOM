@@ -31,6 +31,8 @@
 #include <stdarg.h>
 #include <time.h>
 
+#define POINTER_WARP_COUNTDOWN 5
+
 int mb_used = 6;
 
 void
@@ -63,13 +65,28 @@ I_StartFrame(void) {
 void
 I_StartTic(void) {
 	xcb_generic_event_t *event;
+	int flush = 0;
 
 	while(event = xcb_poll_for_event(i_xcb.connection), event != NULL) {
-		I_PostXCBEvent(event);
+		flush += I_PostXCBEvent(event);
 		free(event);
 	}
 
-	// TODO: Grab and center mouse
+	if(i_xcb.grab_mouse != 0) {
+		static int pointer_warp = POINTER_WARP_COUNTDOWN;
+
+		if(!--pointer_warp) {
+			xcb_warp_pointer(i_xcb.connection, XCB_WINDOW_NONE, i_xcb.window.drawable,
+				0, 0, 0, 0, i_xcb.window.width / 2, i_xcb.window.height / 2);
+
+			pointer_warp = POINTER_WARP_COUNTDOWN;
+			flush++;
+		}
+	}
+
+	if(flush != 0) {
+		xcb_flush(i_xcb.connection);
+	}
 }
 
 ticcmd_t *

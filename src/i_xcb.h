@@ -43,14 +43,18 @@ extern struct i_xcb {
 		xcb_atom_t wm_delete_window;
 	} atoms;
 
+	xcb_cursor_t cursor;
+
 	struct i_xcb_surface window;
 	struct i_xcb_surface framebuffer;
+
+	int grab_mouse;
 } i_xcb;
 
 void
 I_InitXCB(void);
 
-void
+int
 I_PostXCBEvent(const xcb_generic_event_t *event);
 
 #endif

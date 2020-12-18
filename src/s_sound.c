@@ -317,6 +317,7 @@ S_StartSoundAtVolume(void *origin_p,
 
 #ifndef SNDSRV
 	// cache data if necessary
+/*
 	if(!sfx->data) {
 		fprintf(stderr,
 			"S_StartSoundAtVolume: 16bit and not pre-cached - wtf?\n");
@@ -327,6 +328,7 @@ S_StartSoundAtVolume(void *origin_p,
 		//	     "S_StartSoundAtVolume: loading %d (lump %d) : 0x%x\n",
 		//       sfx_id, sfx->lumpnum, (int)sfx->data );
 	}
+*/
 #endif
 
 	// increase the usefulness
