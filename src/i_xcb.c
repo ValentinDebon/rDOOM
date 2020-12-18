@@ -28,6 +28,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define DISPLAYWIDTH SCREENWIDTH
+#define DISPLAYHEIGHT (SCREENWIDTH * 3 / 4)
+
 #define X_KEYSYM_SPECIAL_NOSYMBOL   0x00000000
 #define X_KEYSYM_SPECIAL_VOIDSYMBOL 0x00FFFFFF
 
@@ -67,8 +70,8 @@
 
 struct i_xcb i_xcb = {
 	.window = {
-		.width = SCREENWIDTH,
-		.height = SCREENHEIGHT,
+		.width = DISPLAYWIDTH,
+		.height = DISPLAYHEIGHT,
 	},
 	.framebuffer = {
 		.width = SCREENWIDTH,
@@ -116,18 +119,18 @@ I_InitXCB(void) {
 	/* Arguments */
 
 	if(M_CheckParm("-2") != 0) {
-		i_xcb.window.width = SCREENWIDTH * 2;
-		i_xcb.window.height = SCREENHEIGHT * 2;
+		i_xcb.window.width = DISPLAYWIDTH * 2;
+		i_xcb.window.height = DISPLAYHEIGHT * 2;
 	}
 
 	if(M_CheckParm("-3") != 0) {
-		i_xcb.window.width = SCREENWIDTH * 3;
-		i_xcb.window.height = SCREENHEIGHT * 3;
+		i_xcb.window.width = DISPLAYWIDTH * 3;
+		i_xcb.window.height = DISPLAYHEIGHT * 3;
 	}
 
 	if(M_CheckParm("-4") != 0) {
-		i_xcb.window.width = SCREENWIDTH * 4;
-		i_xcb.window.height = SCREENHEIGHT * 4;
+		i_xcb.window.width = DISPLAYWIDTH * 4;
+		i_xcb.window.height = DISPLAYHEIGHT * 4;
 	}
 
 	i_xcb.grab_mouse = M_CheckParm("-grabmouse") != 0;
