@@ -53,3 +53,5 @@ Looked at DOOM music/sound handling, big mess. Won't implement an OpenAL, go dir
 Also, I commented this annoying warning from `s_sound.c` regarding 16 bit not being pre-cached (we are not DOS anyway).
 Another warning concerning "Demo is from a different game version" was here, not playing demos on title screen.
 I modified the condition from different to greater than engine one. Didn't seem to break a thing, allows them to run.
+Removed `htonl` and `htons` macros, redundant with `<arpa/inet.h>` ones.
+

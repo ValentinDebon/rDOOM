@@ -113,11 +113,14 @@ I_FinishUpdate(void) {
 	/* Synchronizing framebuffer from client with server */
 	uint8_t image[i_video.framebuffer_stride * i_xcb.framebuffer.height];
 	const uint8_t *framebuffer = screens[0];
+	uint8_t *scanline = image;
 
-	for(size_t y = 0; y < i_xcb.framebuffer.height; y++) {
-		uint8_t *scanline = image + y * i_video.framebuffer_stride;
+	const uint8_t * const framebufferend = framebuffer + i_xcb.framebuffer.width * i_xcb.framebuffer.height;
+	const size_t scanline_padding = i_video.framebuffer_stride - i_xcb.framebuffer.width * i_video.format_bytes_per_pixel;
+	while(framebuffer != framebufferend) {
+		const uint8_t * const framebufferrowend = framebuffer + i_xcb.framebuffer.width;
 
-		for(size_t x = 0; x < i_xcb.framebuffer.width; x++) {
+		while(framebuffer != framebufferrowend) {
 			const uint8_t * const rgb_pixel = i_video.colormap + *framebuffer * i_video.format_bytes_per_pixel;
 
 			__builtin_memcpy(scanline, rgb_pixel, i_video.format_bytes_per_pixel);
@@ -125,6 +128,8 @@ I_FinishUpdate(void) {
 			scanline += i_video.format_bytes_per_pixel;
 			framebuffer++;
 		}
+
+		scanline += scanline_padding;
 	}
 
 	xcb_put_image(i_xcb.connection,
