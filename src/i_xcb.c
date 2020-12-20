@@ -498,7 +498,7 @@ I_PostXCBEvent(const xcb_generic_event_t *generic_event) {
 				= (const xcb_motion_notify_event_t *)generic_event;
 			const event_t event = {
 				.type = ev_mouse,
-				.data1 = 1 << (motion_notify_event->detail - 1 & 0x07),
+				.data1 = (motion_notify_event->state >> 8 & 0x07),
 				.data2 = (motion_notify_event->event_x - lastx) << 2,
 				.data3 = (lasty - motion_notify_event->event_y) << 2,
 			};
