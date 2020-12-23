@@ -252,9 +252,8 @@ P_RadiusAttack(mobj_t *spot,
 //
 // P_SETUP
 //
-extern byte *rejectmatrix;  // for fast sight rejection
-extern short *blockmaplump; // offsets in blockmap are from here
-extern short *blockmap;
+extern const byte *rejectmatrix;  // for fast sight rejection
+extern const short *blockmaplump; // offsets in blockmap are from here, in WAD format
 extern int bmapwidth;
 extern int bmapheight; // in mapblocks
 extern fixed_t bmaporgx;

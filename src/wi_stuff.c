@@ -138,7 +138,7 @@ typedef struct
 	int data2;
 
 	// actual graphics for frames of animations
-	patch_t *p[3];
+	const patch_t *p[3];
 
 	// following must be initialized to zero before use!
 
@@ -310,61 +310,61 @@ static int NUMCMAPS;
 //
 
 // background (map of levels).
-static patch_t *bg;
+static const patch_t *bg;
 
 // You Are Here graphic
-static patch_t *yah[2];
+static const patch_t *yah[2];
 
 // splat
-static patch_t *splat;
+static const patch_t *splat;
 
 // %, : graphics
-static patch_t *percent;
-static patch_t *colon;
+static const patch_t *percent;
+static const patch_t *colon;
 
 // 0-9 graphic
-static patch_t *num[10];
+static const patch_t *num[10];
 
 // minus sign
-static patch_t *wiminus;
+static const patch_t *wiminus;
 
 // "Finished!" graphics
-static patch_t *finished;
+static const patch_t *finished;
 
 // "Entering" graphic
-static patch_t *entering;
+static const patch_t *entering;
 
 // "secret"
-static patch_t *sp_secret;
+static const patch_t *sp_secret;
 
 // "Kills", "Scrt", "Items", "Frags"
-static patch_t *kills;
-static patch_t *secret;
-static patch_t *items;
-static patch_t *frags;
+static const patch_t *kills;
+static const patch_t *secret;
+static const patch_t *items;
+static const patch_t *frags;
 
 // Time sucks.
-static patch_t *witime;
-static patch_t *par;
-static patch_t *sucks;
+static const patch_t *witime;
+static const patch_t *par;
+static const patch_t *sucks;
 
 // "killers", "victims"
-static patch_t *killers;
-static patch_t *victims;
+static const patch_t *killers;
+static const patch_t *victims;
 
 // "Total", your face, your dead face
-static patch_t *total;
-static patch_t *star;
-static patch_t *bstar;
+static const patch_t *total;
+static const patch_t *star;
+static const patch_t *bstar;
 
 // "red P[1..MAXPLAYERS]"
-static patch_t *p[MAXPLAYERS];
+static const patch_t *p[MAXPLAYERS];
 
 // "gray P[1..MAXPLAYERS]"
-static patch_t *bp[MAXPLAYERS];
+static const patch_t *bp[MAXPLAYERS];
 
 // Name graphics of each level (centered)
-static patch_t **lnames;
+static const patch_t **lnames;
 
 //
 // CODE
@@ -428,7 +428,7 @@ WI_drawEL(void) {
 
 void
 WI_drawOnLnode(int n,
-	patch_t *c[]) {
+	const patch_t *c[]) {
 
 	int i;
 	int left;
@@ -1394,7 +1394,7 @@ WI_loadData(void) {
 	}
 
 	// background
-	bg = W_CacheLumpName(name, PU_CACHE);
+	bg = W_LumpForName(name)->data;
 	V_DrawPatch(0, 0, 1, bg);
 
 	// UNUSED unsigned char *pic = screens[1];
@@ -1410,30 +1410,30 @@ WI_loadData(void) {
 
 	if(gamemode == commercial) {
 		NUMCMAPS = 32;
-		lnames   = (patch_t **)Z_Malloc(sizeof(patch_t *) * NUMCMAPS,
+		lnames   = (const patch_t **)Z_Malloc(sizeof(const patch_t *) * NUMCMAPS,
             PU_STATIC,
             0);
 		for(i = 0; i < NUMCMAPS; i++) {
 			sprintf(name, "CWILV%2.2d", i);
-			lnames[i] = W_CacheLumpName(name, PU_STATIC);
+			lnames[i] = W_LumpForName(name)->data;
 		}
 	} else {
-		lnames = (patch_t **)Z_Malloc(sizeof(patch_t *) * NUMMAPS,
+		lnames = (const patch_t **)Z_Malloc(sizeof(const patch_t *) * NUMMAPS,
 			PU_STATIC,
 			0);
 		for(i = 0; i < NUMMAPS; i++) {
 			sprintf(name, "WILV%d%d", wbs->epsd, i);
-			lnames[i] = W_CacheLumpName(name, PU_STATIC);
+			lnames[i] = W_LumpForName(name)->data;
 		}
 
 		// you are here
-		yah[0] = W_CacheLumpName("WIURH0", PU_STATIC);
+		yah[0] = W_LumpForName("WIURH0")->data;
 
 		// you are here (alt.)
-		yah[1] = W_CacheLumpName("WIURH1", PU_STATIC);
+		yah[1] = W_LumpForName("WIURH1")->data;
 
 		// splat
-		splat = W_CacheLumpName("WISPLAT", PU_STATIC);
+		splat = W_LumpForName("WISPLAT")->data;
 
 		if(wbs->epsd < 3) {
 			for(j = 0; j < NUMANIMS[wbs->epsd]; j++) {
@@ -1443,7 +1443,7 @@ WI_loadData(void) {
 					if(wbs->epsd != 1 || j != 8) {
 						// animations
 						sprintf(name, "WIA%d%.2d%.2d", wbs->epsd, j, i);
-						a->p[i] = W_CacheLumpName(name, PU_STATIC);
+						a->p[i] = W_LumpForName(name)->data;
 					} else {
 						// HACK ALERT!
 						a->p[i] = anims[1][4].p[i];
@@ -1454,85 +1454,86 @@ WI_loadData(void) {
 	}
 
 	// More hacks on minus sign.
-	wiminus = W_CacheLumpName("WIMINUS", PU_STATIC);
+	wiminus = W_LumpForName("WIMINUS")->data;
 
 	for(i = 0; i < 10; i++) {
 		// numbers 0-9
 		sprintf(name, "WINUM%d", i);
-		num[i] = W_CacheLumpName(name, PU_STATIC);
+		num[i] = W_LumpForName(name)->data;
 	}
 
 	// percent sign
-	percent = W_CacheLumpName("WIPCNT", PU_STATIC);
+	percent = W_LumpForName("WIPCNT")->data;
 
 	// "finished"
-	finished = W_CacheLumpName("WIF", PU_STATIC);
+	finished = W_LumpForName("WIF")->data;
 
 	// "entering"
-	entering = W_CacheLumpName("WIENTER", PU_STATIC);
+	entering = W_LumpForName("WIENTER")->data;
 
 	// "kills"
-	kills = W_CacheLumpName("WIOSTK", PU_STATIC);
+	kills = W_LumpForName("WIOSTK")->data;
 
 	// "scrt"
-	secret = W_CacheLumpName("WIOSTS", PU_STATIC);
+	secret = W_LumpForName("WIOSTS")->data;
 
 	// "secret"
-	sp_secret = W_CacheLumpName("WISCRT2", PU_STATIC);
+	sp_secret = W_LumpForName("WISCRT2")->data;
 
 	// Yuck.
 	if(french) {
 		// "items"
 		if(netgame && !deathmatch)
-			items = W_CacheLumpName("WIOBJ", PU_STATIC);
+			items = W_LumpForName("WIOBJ")->data;
 		else
-			items = W_CacheLumpName("WIOSTI", PU_STATIC);
+			items = W_LumpForName("WIOSTI")->data;
 	} else
-		items = W_CacheLumpName("WIOSTI", PU_STATIC);
+		items = W_LumpForName("WIOSTI")->data;
 
 	// "frgs"
-	frags = W_CacheLumpName("WIFRGS", PU_STATIC);
+	frags = W_LumpForName("WIFRGS")->data;
 
 	// ":"
-	colon = W_CacheLumpName("WICOLON", PU_STATIC);
+	colon = W_LumpForName("WICOLON")->data;
 
 	// "time"
-	witime = W_CacheLumpName("WITIME", PU_STATIC);
+	witime = W_LumpForName("WITIME")->data;
 
 	// "sucks"
-	sucks = W_CacheLumpName("WISUCKS", PU_STATIC);
+	sucks = W_LumpForName("WISUCKS")->data;
 
 	// "par"
-	par = W_CacheLumpName("WIPAR", PU_STATIC);
+	par = W_LumpForName("WIPAR")->data;
 
 	// "killers" (vertical)
-	killers = W_CacheLumpName("WIKILRS", PU_STATIC);
+	killers = W_LumpForName("WIKILRS")->data;
 
 	// "victims" (horiz)
-	victims = W_CacheLumpName("WIVCTMS", PU_STATIC);
+	victims = W_LumpForName("WIVCTMS")->data;
 
 	// "total"
-	total = W_CacheLumpName("WIMSTT", PU_STATIC);
+	total = W_LumpForName("WIMSTT")->data;
 
 	// your face
-	star = W_CacheLumpName("STFST01", PU_STATIC);
+	star = W_LumpForName("STFST01")->data;
 
 	// dead face
-	bstar = W_CacheLumpName("STFDEAD0", PU_STATIC);
+	bstar = W_LumpForName("STFDEAD0")->data;
 
 	for(i = 0; i < MAXPLAYERS; i++) {
 		// "1,2,3,4"
 		sprintf(name, "STPB%d", i);
-		p[i] = W_CacheLumpName(name, PU_STATIC);
+		p[i] = W_LumpForName(name)->data;
 
 		// "1,2,3,4"
 		sprintf(name, "WIBP%d", i + 1);
-		bp[i] = W_CacheLumpName(name, PU_STATIC);
+		bp[i] = W_LumpForName(name)->data;
 	}
 }
 
 void
 WI_unloadData(void) {
+/*
 	int i;
 	int j;
 
@@ -1588,6 +1589,7 @@ WI_unloadData(void) {
 
 	for(i = 0; i < MAXPLAYERS; i++)
 		Z_ChangeTag(bp[i], PU_CACHE);
+	*/
 }
 
 void

@@ -62,11 +62,11 @@ I_SetChannels(void) {
 
 int
 I_GetSfxLumpNum(sfxinfo_t *sfxinfo) {
-	char buffer[9];
+	char name[9];
 
-	snprintf(buffer, sizeof(buffer), "ds%s", sfxinfo->name);
+	snprintf(name, sizeof(name), "ds%s", sfxinfo->name);
 
-	return W_GetNumForName(buffer);
+	return W_GetIdForName(name);
 }
 
 int
@@ -100,7 +100,7 @@ I_SetMusicVolume(int volume) {
 }
 
 int
-I_RegisterSong(void *data) {
+I_RegisterSong(const void *data) {
 	static const uint8_t magic[] = { 'M', 'U', 'S', 0x1A };
 	const struct w_lump_D_x *music = data;
 

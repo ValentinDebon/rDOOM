@@ -21,6 +21,8 @@
 #ifndef __R_DATA__
 #define __R_DATA__
 
+#include <stdint.h>
+
 #include "r_defs.h"
 #include "r_state.h"
 
@@ -29,7 +31,7 @@
 #endif
 
 // Retrieve column data for span blitting.
-byte *
+const uint8_t *
 R_GetColumn(int tex,
 	int col);
 
@@ -43,13 +45,13 @@ R_PrecacheLevel(void);
 // Floor/ceiling opaque texture tiles,
 // lookup by name. For animation?
 int
-R_FlatNumForName(char *name);
+R_FlatNumForName(const char *name);
 
 // Called by P_Ticker for switches and animations,
 // returns the texture number for the texture name.
 int
-R_TextureNumForName(char *name);
+R_TextureNumForName(const char *name);
 int
-R_CheckTextureNumForName(char *name);
+R_CheckTextureNumForName(const char *name);
 
 #endif

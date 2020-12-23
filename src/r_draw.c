@@ -78,7 +78,7 @@ fixed_t dc_iscale;
 fixed_t dc_texturemid;
 
 // first pixel in a column (possibly virtual)
-byte *dc_source;
+const uint8_t *dc_source;
 
 // just for profiling
 int dccount;
@@ -512,7 +512,7 @@ fixed_t ds_xstep;
 fixed_t ds_ystep;
 
 // start of a 64*64 tile image
-byte *ds_source;
+const uint8_t *ds_source;
 
 // just for profiling
 int dscount;
@@ -722,11 +722,11 @@ R_InitBuffer(int width,
 //
 void
 R_FillBackScreen(void) {
-	byte *src;
+	const byte *src;
 	byte *dest;
 	int x;
 	int y;
-	patch_t *patch;
+	const patch_t *patch;
 
 	// DOOM border patch.
 	char name1[] = "FLOOR7_2";
@@ -744,7 +744,7 @@ R_FillBackScreen(void) {
 	else
 		name = name1;
 
-	src  = W_CacheLumpName(name, PU_CACHE);
+	src  = W_LumpForName(name)->data;
 	dest = screens[1];
 
 	for(y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++) {
@@ -759,19 +759,19 @@ R_FillBackScreen(void) {
 		}
 	}
 
-	patch = W_CacheLumpName("brdr_t", PU_CACHE);
+	patch = W_LumpForName("brdr_t")->data;
 
 	for(x = 0; x < scaledviewwidth; x += 8)
 		V_DrawPatch(viewwindowx + x, viewwindowy - 8, 1, patch);
-	patch = W_CacheLumpName("brdr_b", PU_CACHE);
+	patch = W_LumpForName("brdr_b")->data;
 
 	for(x = 0; x < scaledviewwidth; x += 8)
 		V_DrawPatch(viewwindowx + x, viewwindowy + viewheight, 1, patch);
-	patch = W_CacheLumpName("brdr_l", PU_CACHE);
+	patch = W_LumpForName("brdr_l")->data;
 
 	for(y = 0; y < viewheight; y += 8)
 		V_DrawPatch(viewwindowx - 8, viewwindowy + y, 1, patch);
-	patch = W_CacheLumpName("brdr_r", PU_CACHE);
+	patch = W_LumpForName("brdr_r")->data;
 
 	for(y = 0; y < viewheight; y += 8)
 		V_DrawPatch(viewwindowx + scaledviewwidth, viewwindowy + y, 1, patch);
@@ -780,22 +780,22 @@ R_FillBackScreen(void) {
 	V_DrawPatch(viewwindowx - 8,
 		viewwindowy - 8,
 		1,
-		W_CacheLumpName("brdr_tl", PU_CACHE));
+		W_LumpForName("brdr_tl")->data);
 
 	V_DrawPatch(viewwindowx + scaledviewwidth,
 		viewwindowy - 8,
 		1,
-		W_CacheLumpName("brdr_tr", PU_CACHE));
+		W_LumpForName("brdr_tr")->data);
 
 	V_DrawPatch(viewwindowx - 8,
 		viewwindowy + viewheight,
 		1,
-		W_CacheLumpName("brdr_bl", PU_CACHE));
+		W_LumpForName("brdr_bl")->data);
 
 	V_DrawPatch(viewwindowx + scaledviewwidth,
 		viewwindowy + viewheight,
 		1,
-		W_CacheLumpName("brdr_br", PU_CACHE));
+		W_LumpForName("brdr_br")->data);
 }
 
 //

@@ -408,7 +408,7 @@ WritePCXfile(char *filename,
 	byte *data,
 	int width,
 	int height,
-	byte *palette) {
+	const byte *palette) {
 	int i;
 	int length;
 	pcx_t *pcx;
@@ -482,7 +482,7 @@ M_ScreenShot(void) {
 		I_Error("M_ScreenShot: Couldn't create a PCX");
 
 	// save the pcx file
-	WritePCXfile(lbmname, linear, SCREENWIDTH, SCREENHEIGHT, W_CacheLumpName("PLAYPAL", PU_CACHE));
+	WritePCXfile(lbmname, linear, SCREENWIDTH, SCREENHEIGHT, W_LumpForName("PLAYPAL")->data);
 
 	players[consoleplayer].message = "screen shot";
 }

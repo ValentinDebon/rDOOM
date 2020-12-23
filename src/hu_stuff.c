@@ -75,7 +75,7 @@ char *player_names[] = {
 
 char chat_char; // remove later.
 static player_t *plr;
-patch_t *hu_font[HU_FONTSIZE];
+const patch_t *hu_font[HU_FONTSIZE];
 static hu_textline_t w_title;
 boolean chat_on;
 static hu_itext_t w_chat;
@@ -686,7 +686,7 @@ HU_Init(void) {
 	j = HU_FONTSTART;
 	for(i = 0; i < HU_FONTSIZE; i++) {
 		sprintf(buffer, "STCFN%.3d", j++);
-		hu_font[i] = (patch_t *)W_CacheLumpName(buffer, PU_STATIC);
+		hu_font[i] = (const patch_t *)W_LumpForName(buffer);
 	}
 }
 

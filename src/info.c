@@ -30,7 +30,7 @@
 
 #include "p_mobj.h"
 
-char *sprnames[NUMSPRITES] = {
+const char *sprnames[NUMSPRITES] = {
 	"TROO",
 	"SHTG",
 	"PUNG",

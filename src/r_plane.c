@@ -364,8 +364,7 @@ R_DrawPlanes(void) {
 		}
 
 		// regular flat
-		ds_source = W_CacheLumpNum(firstflat + flattranslation[pl->picnum],
-			PU_STATIC);
+		ds_source = W_LumpForId(firstflat + flattranslation[pl->picnum])->data;
 
 		planeheight = abs(pl->height - viewz);
 		light       = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
@@ -386,7 +385,5 @@ R_DrawPlanes(void) {
 		for(x = pl->minx; x <= stop; x++) {
 			R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x], pl->bottom[x]);
 		}
-
-		Z_ChangeTag(ds_source, PU_CACHE);
 	}
 }

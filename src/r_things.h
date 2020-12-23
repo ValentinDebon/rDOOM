@@ -55,7 +55,7 @@ R_AddPSprites(void);
 void
 R_DrawSprites(void);
 void
-R_InitSprites(char **namelist);
+R_InitSprites(const char **namelist);
 void
 R_ClearSprites(void);
 void

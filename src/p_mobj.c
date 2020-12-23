@@ -35,7 +35,7 @@
 void
 G_PlayerReborn(int player);
 void
-P_SpawnMapThing(mapthing_t *mthing);
+P_SpawnMapThing(const mapthing_t *mthing);
 
 //
 // P_SetMobjState
@@ -570,7 +570,7 @@ P_RespawnSpecials(void) {
 //  between levels.
 //
 void
-P_SpawnPlayer(mapthing_t *mthing) {
+P_SpawnPlayer(const mapthing_t *mthing) {
 	player_t *p;
 	fixed_t x;
 	fixed_t y;
@@ -634,7 +634,7 @@ P_SpawnPlayer(mapthing_t *mthing) {
 // already be in host byte order.
 //
 void
-P_SpawnMapThing(mapthing_t *mthing) {
+P_SpawnMapThing(const mapthing_t *mthing) {
 	int i;
 	int bit;
 	mobj_t *mobj;

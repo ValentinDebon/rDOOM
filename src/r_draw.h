@@ -22,6 +22,8 @@
 #pragma interface
 #endif
 
+#include <stdint.h>
+
 extern lighttable_t *dc_colormap;
 extern int dc_x;
 extern int dc_yl;
@@ -30,7 +32,7 @@ extern fixed_t dc_iscale;
 extern fixed_t dc_texturemid;
 
 // first pixel in a column
-extern byte *dc_source;
+extern const uint8_t *dc_source;
 
 // The span blitting interface.
 // Hook in assembler or system specific BLT
@@ -70,7 +72,7 @@ extern fixed_t ds_xstep;
 extern fixed_t ds_ystep;
 
 // start of a 64*64 tile image
-extern byte *ds_source;
+extern const uint8_t *ds_source;
 
 extern byte *translationtables;
 extern byte *dc_translation;

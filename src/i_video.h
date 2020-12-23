@@ -18,7 +18,7 @@
 #ifndef __I_VIDEO__
 #define __I_VIDEO__
 
-#include "doomtype.h"
+#include <stdint.h>
 
 // Called by D_DoomMain,
 // determines the hardware configuration
@@ -28,7 +28,7 @@ I_InitGraphics(void);
 
 // Takes full 8 bit values.
 void
-I_SetPalette(byte *palette);
+I_SetPalette(const uint8_t *palette);
 
 void
 I_UpdateNoBlit(void);
@@ -40,7 +40,7 @@ void
 I_WaitVBL(int count);
 
 void
-I_ReadScreen(byte *scr);
+I_ReadScreen(uint8_t *scr);
 
 void
 I_BeginRead(void);
