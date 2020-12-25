@@ -56,9 +56,9 @@ I_InitGraphics(void) {
 		I_Error("I_InitGraphics: Unsupported class of visual\n");
 	}
 
-	/* For readability reasons and common sense, we won't handle non byte-aligned bpp */
-	if((i_xcb.format->bits_per_pixel & 0x07) != 0) {
-		I_Error("I_InitGraphics: Unsupported not byte-aligned bits per pixel format %d", i_xcb.format->bits_per_pixel);
+	/* Code doesn't handle (yet) non byte based rgb values */
+	if(i_xcb.visualtype->bits_per_rgb_value != 8) {
+		I_Error("I_InitGraphics: Unsupported %d bits rgb value", i_xcb.visualtype->bits_per_rgb_value);
 	}
 
 	/* Keep it somewhere, need it everywhere */
