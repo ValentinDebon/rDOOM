@@ -42,9 +42,9 @@ extern boolean skymap;
 extern drawseg_t drawsegs[MAXDRAWSEGS];
 extern drawseg_t *ds_p;
 
-extern lighttable_t **hscalelight;
-extern lighttable_t **vscalelight;
-extern lighttable_t **dscalelight;
+extern const lighttable_t **hscalelight;
+extern const lighttable_t **vscalelight;
+extern const lighttable_t **dscalelight;
 
 typedef void (*drawfunc_t)(int start, int stop);
 

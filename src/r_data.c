@@ -143,7 +143,7 @@ fixed_t *spritewidth;
 fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
-lighttable_t *colormaps;
+const lighttable_t *colormaps;
 
 //
 // MAPTEXTURE_T CACHING
@@ -571,14 +571,7 @@ R_InitSpriteLumps(void) {
 //
 void
 R_InitColormaps(void) {
-	const struct w_lump *lump = W_LumpForName("COLORMAP");
-	const size_t length = lump->size + 255;
-
-	// Load in the light tables,
-	//  256 byte align tables.
-	colormaps = Z_Malloc(length, PU_STATIC, 0);
-	colormaps = (lighttable_t *)((uintptr_t)colormaps + 255 & ~0xff);
-	memcpy(colormaps, lump->data, lump->size);
+	colormaps = W_LumpForName("COLORMAP")->data;
 }
 
 //

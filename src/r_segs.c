@@ -75,7 +75,7 @@ fixed_t topstep;
 fixed_t bottomfrac;
 fixed_t bottomstep;
 
-lighttable_t **walllights;
+const lighttable_t **walllights;
 
 short *maskedtexturecol;
 

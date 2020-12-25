@@ -68,7 +68,6 @@ W_InitFile(const char *filename, struct i_fileMap *filemap) {
 		struct w_lump *lumps = lumpsend - count;
 
 		while(lumps != lumpsend) {
-			printf("Loading lump %.8s\n", lumpinfo->name);
 
 			strncpy(lumps->name, lumpinfo->name, sizeof(lumps->name));
 			lumps->size = lumpinfo->size;
@@ -129,7 +128,7 @@ W_FindIdForName(const char *name) {
 	const struct w_lump *lumpsend = w_wad.lumps + w_wad.lumps_count;
 
 	while(--lumpsend >= w_wad.lumps) {
-		if(strncmp(lumpsend->name, name, sizeof(lumpsend->name)) == 0) {
+		if(strncasecmp(lumpsend->name, name, sizeof(lumpsend->name)) == 0) {
 			return lumpsend - w_wad.lumps;
 		}
 	}

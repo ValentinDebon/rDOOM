@@ -56,7 +56,7 @@
 // Returns the final X coordinate
 // HU_Init must have been called to init the font
 //
-extern patch_t *hu_font[HU_FONTSIZE];
+extern const patch_t *hu_font[HU_FONTSIZE];
 
 int
 M_DrawText(int x,

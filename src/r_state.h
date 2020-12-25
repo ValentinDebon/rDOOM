@@ -40,7 +40,7 @@ extern fixed_t *spritewidth;
 extern fixed_t *spriteoffset;
 extern fixed_t *spritetopoffset;
 
-extern lighttable_t *colormaps;
+extern const lighttable_t *colormaps;
 
 extern int viewwidth;
 extern int scaledviewwidth;
