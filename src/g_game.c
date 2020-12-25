@@ -946,7 +946,7 @@ void
 G_SecretExitLevel(void) {
 	// IF NO WOLF3D LEVELS, NO SECRET EXIT!
 	if((gamemode == commercial)
-		&& (W_CheckNumForName("map31") < 0))
+		&& (W_FindIdForName("map31") < 0))
 		secretexit = false;
 	else
 		secretexit = true;
@@ -1468,11 +1468,13 @@ G_DeferedPlayDemo(char *name) {
 
 void
 G_DoPlayDemo(void) {
-	skill_t skill;
+	const struct w_lump *lump = W_LumpForName(defdemoname);
 	int i, episode, map;
+	skill_t skill;
 
 	gameaction = ga_nothing;
-	demobuffer = demo_p = W_CacheLumpName(defdemoname, PU_STATIC);
+	demobuffer = demo_p = Z_Malloc(lump->size, PU_STATIC, NULL);
+	memcpy(demobuffer, lump->data, lump->size);
 	if(*demo_p++ > VERSION) {
 		fprintf(stderr, "Demo is from a different game version!\n");
 		gameaction = ga_nothing;

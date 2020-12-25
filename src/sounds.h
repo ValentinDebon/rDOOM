@@ -67,7 +67,7 @@ typedef struct
 	int lumpnum;
 
 	// music data
-	void *data;
+	const void *data;
 
 	// music handle once registered
 	int handle;

@@ -236,11 +236,11 @@ F_Ticker(void) {
 //
 
 #include "hu_stuff.h"
-extern patch_t *hu_font[HU_FONTSIZE];
+extern const patch_t *hu_font[HU_FONTSIZE];
 
 void
 F_TextWrite(void) {
-	byte *src;
+	const byte *src;
 	byte *dest;
 
 	int x, y, w;
@@ -251,7 +251,7 @@ F_TextWrite(void) {
 	int cy;
 
 	// erase the entire screen to a tiled background
-	src  = W_CacheLumpName(finaleflat, PU_CACHE);
+	src  = W_LumpForName(finaleflat)->data;
 	dest = screens[0];
 
 	for(y = 0; y < SCREENHEIGHT; y++) {
@@ -563,18 +563,15 @@ F_CastPrint(char *text) {
 // F_CastDrawer
 //
 void
-V_DrawPatchFlipped(int x, int y, int scrn, patch_t *patch);
-
-void
 F_CastDrawer(void) {
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	int lump;
 	boolean flip;
-	patch_t *patch;
+	const patch_t *patch;
 
 	// erase the entire screen to a background
-	V_DrawPatch(0, 0, 0, W_CacheLumpName("BOSSBACK", PU_CACHE));
+	V_DrawPatch(0, 0, 0, W_LumpForName("BOSSBACK")->data);
 
 	F_CastPrint(castorder[castnum].name);
 
@@ -584,7 +581,7 @@ F_CastDrawer(void) {
 	lump     = sprframe->lump[0];
 	flip     = (boolean)sprframe->flip[0];
 
-	patch = W_CacheLumpNum(lump + firstspritelump, PU_CACHE);
+	patch = W_LumpForId(lump + firstspritelump)->data;
 	if(flip)
 		V_DrawPatchFlipped(160, 170, 0, patch);
 	else
@@ -596,20 +593,20 @@ F_CastDrawer(void) {
 //
 void
 F_DrawPatchCol(int x,
-	patch_t *patch,
+	const patch_t *patch,
 	int col) {
-	column_t *column;
-	byte *source;
-	byte *dest;
-	byte *desttop;
+	const column_t *column;
+	const uint8_t *source;
+	uint8_t *dest;
+	uint8_t *desttop;
 	int count;
 
-	column  = (column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+	column  = (const column_t *)((const uint8_t *)patch + LONG(patch->columnofs[col]));
 	desttop = screens[0] + x;
 
 	// step through the posts in a column
 	while(column->topdelta != 0xff) {
-		source = (byte *)column + 3;
+		source = (const byte *)column + 3;
 		dest   = desttop + column->topdelta * SCREENWIDTH;
 		count  = column->length;
 
@@ -617,7 +614,7 @@ F_DrawPatchCol(int x,
 			*dest = *source++;
 			dest += SCREENWIDTH;
 		}
-		column = (column_t *)((byte *)column + column->length + 4);
+		column = (const column_t *)((const uint8_t *)column + column->length + 4);
 	}
 }
 
@@ -628,14 +625,14 @@ void
 F_BunnyScroll(void) {
 	int scrolled;
 	int x;
-	patch_t *p1;
-	patch_t *p2;
+	const patch_t *p1;
+	const patch_t *p2;
 	char name[10];
 	int stage;
 	static int laststage;
 
-	p1 = W_CacheLumpName("PFUB2", PU_LEVEL);
-	p2 = W_CacheLumpName("PFUB1", PU_LEVEL);
+	p1 = W_LumpForName("PFUB2")->data;
+	p2 = W_LumpForName("PFUB1")->data;
 
 	V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
@@ -658,7 +655,7 @@ F_BunnyScroll(void) {
 		V_DrawPatch((SCREENWIDTH - 13 * 8) / 2,
 			(SCREENHEIGHT - 8 * 8) / 2,
 			0,
-			W_CacheLumpName("END0", PU_CACHE));
+			W_LumpForName("END0")->data);
 		laststage = 0;
 		return;
 	}
@@ -672,7 +669,7 @@ F_BunnyScroll(void) {
 	}
 
 	sprintf(name, "END%i", stage);
-	V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, (SCREENHEIGHT - 8 * 8) / 2, 0, W_CacheLumpName(name, PU_CACHE));
+	V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, (SCREENHEIGHT - 8 * 8) / 2, 0, W_LumpForName(name)->data);
 }
 
 //
@@ -691,18 +688,18 @@ F_Drawer(void) {
 		switch(gameepisode) {
 		case 1:
 			if(gamemode == retail)
-				V_DrawPatch(0, 0, 0, W_CacheLumpName("CREDIT", PU_CACHE));
+				V_DrawPatch(0, 0, 0, W_LumpForName("CREDIT")->data);
 			else
-				V_DrawPatch(0, 0, 0, W_CacheLumpName("HELP2", PU_CACHE));
+				V_DrawPatch(0, 0, 0, W_LumpForName("HELP2")->data);
 			break;
 		case 2:
-			V_DrawPatch(0, 0, 0, W_CacheLumpName("VICTORY2", PU_CACHE));
+			V_DrawPatch(0, 0, 0, W_LumpForName("VICTORY2")->data);
 			break;
 		case 3:
 			F_BunnyScroll();
 			break;
 		case 4:
-			V_DrawPatch(0, 0, 0, W_CacheLumpName("ENDPIC", PU_CACHE));
+			V_DrawPatch(0, 0, 0, W_LumpForName("ENDPIC")->data);
 			break;
 		}
 	}

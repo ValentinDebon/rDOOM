@@ -38,8 +38,8 @@ int viewangleoffset;
 // increment every time a check is made
 int validcount = 1;
 
-lighttable_t *fixedcolormap;
-extern lighttable_t **walllights;
+const lighttable_t *fixedcolormap;
+extern const lighttable_t **walllights;
 
 int centerx;
 int centery;
@@ -94,9 +94,9 @@ angle_t xtoviewangle[SCREENWIDTH + 1];
 // fixed_t		finesine[5*FINEANGLES/4];
 fixed_t *finecosine = &finesine[FINEANGLES / 4];
 
-lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
-lighttable_t *scalelightfixed[MAXLIGHTSCALE];
-lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
+const lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
+const lighttable_t *scalelightfixed[MAXLIGHTSCALE];
+const lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
 
 // bumped light from gun blasts
 int extralight;

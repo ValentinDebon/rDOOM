@@ -81,7 +81,7 @@ I_SetMusicVolume(int volume);
 
 // Registers a song handle to song data.
 int
-I_RegisterSong(void *data);
+I_RegisterSong(const void *data);
 
 // See above (register), then think backwards
 void

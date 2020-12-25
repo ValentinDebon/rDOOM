@@ -47,7 +47,7 @@ void
 HUlib_initTextLine(hu_textline_t *t,
 	int x,
 	int y,
-	patch_t **f,
+	const patch_t **f,
 	int sc) {
 	t->x  = x;
 	t->y  = y;
@@ -152,7 +152,7 @@ HUlib_initSText(hu_stext_t *s,
 	int x,
 	int y,
 	int h,
-	patch_t **font,
+	const patch_t **font,
 	int startchar,
 	boolean *on) {
 
@@ -236,7 +236,7 @@ void
 HUlib_initIText(hu_itext_t *it,
 	int x,
 	int y,
-	patch_t **font,
+	const patch_t **font,
 	int startchar,
 	boolean *on) {
 	it->lm     = 0; // default left margin is start of text

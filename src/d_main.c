@@ -149,7 +149,7 @@ D_ProcessEvents(void) {
 
 	// IF STORE DEMO, DO NOT ACCEPT INPUT
 	if((gamemode == commercial)
-		&& (W_CheckNumForName("map01") < 0))
+		&& (W_FindIdForName("map01") < 0))
 		return;
 
 	for(; eventtail != eventhead; ++eventtail, eventtail = eventtail & (MAXEVENTS - 1)) {
@@ -250,7 +250,7 @@ D_Display(void) {
 
 	// clean up border stuff
 	if(gamestate != oldgamestate && gamestate != GS_LEVEL)
-		I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+		I_SetPalette(W_LumpForName("PLAYPAL")->data);
 
 	// see if the border needs to be initially drawn
 	if(gamestate == GS_LEVEL && oldgamestate != GS_LEVEL) {
@@ -282,7 +282,7 @@ D_Display(void) {
 		V_DrawPatchDirect(viewwindowx + (scaledviewwidth - 68) / 2,
 			y,
 			0,
-			W_CacheLumpName("M_PAUSE", PU_CACHE));
+			W_LumpForName("M_PAUSE")->data);
 	}
 
 	// menus go directly to the screen
@@ -390,7 +390,7 @@ D_PageTicker(void) {
 //
 void
 D_PageDrawer(void) {
-	V_DrawPatch(0, 0, 0, W_CacheLumpName(pagename, PU_CACHE));
+	V_DrawPatch(0, 0, 0, W_LumpForName(pagename)->data);
 }
 
 //
@@ -937,7 +937,7 @@ D_DoomMain(void) {
 	Z_Init();
 
 	printf("W_Init: Init WADfiles.\n");
-	W_InitMultipleFiles(wadfiles);
+	W_Init((const char **)wadfiles);
 
 	// Check for -file in shareware
 	if(modifiedgame) {
@@ -956,7 +956,7 @@ D_DoomMain(void) {
 		// but w/o all the lumps of the registered version.
 		if(gamemode == registered)
 			for(i = 0; i < 23; i++)
-				if(W_CheckNumForName(name[i]) < 0)
+				if(W_FindIdForName(name[i]) < 0)
 					I_Error("\nThis is not the registered version.");
 	}
 

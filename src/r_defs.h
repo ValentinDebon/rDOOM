@@ -348,7 +348,7 @@ typedef struct vissprite_s {
 
 	// for color translation and shadow draw,
 	//  maxbright frames as well
-	lighttable_t *colormap;
+	const lighttable_t *colormap;
 
 	int mobjflags;
 

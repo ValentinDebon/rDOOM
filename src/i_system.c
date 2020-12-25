@@ -21,6 +21,7 @@
 #include "doomdef.h"
 #include "i_system.h"
 
+#include "i_xcb.h"
 #include "i_sound.h"
 #include "g_game.h"
 #include "m_misc.h"
@@ -29,7 +30,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <time.h>
+
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #define POINTER_WARP_COUNTDOWN 5
 
@@ -132,5 +140,33 @@ I_Error(char *error, ...) {
 	D_QuitNetGame();
 
 	exit(EXIT_FAILURE);
+}
+
+void
+I_FileMap(const char *filename, struct i_fileMap *filemap) {
+	const int fd = open(filename, O_RDONLY);
+	struct stat st;
+
+	if(fd < 0) {
+		I_Error("I_FileMap: Unable to open %s: %s", filename, strerror(errno));
+	}
+
+	if(fstat(fd, &st) != 0) {
+		I_Error("I_FileMap: Unable to stat %s: %s", filename, strerror(errno));
+	}
+
+	filemap->size = st.st_size;
+	filemap->address = mmap(0, filemap->size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+	if(filemap->address == MAP_FAILED) {
+		I_Error("I_FileMap: Unable to map %s: %s", filename, strerror(errno));
+	}
+
+	close(fd);
+}
+
+void
+I_FileUnMap(struct i_fileMap *filemap) {
+	munmap(filemap->address, filemap->size);
 }
 

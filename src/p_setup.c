@@ -38,7 +38,7 @@
 #include "doomstat.h"
 
 void
-P_SpawnMapThing(mapthing_t *mthing);
+P_SpawnMapThing(const mapthing_t *mthing);
 
 //
 // MAP related Lookup tables.
@@ -75,9 +75,8 @@ side_t *sides;
 // Blockmap size.
 int bmapwidth;
 int bmapheight;  // size in mapblocks
-short *blockmap; // int for larger maps
 // offsets in blockmap are from here
-short *blockmaplump;
+const short *blockmaplump;
 // origin of block map
 fixed_t bmaporgx;
 fixed_t bmaporgy;
@@ -91,7 +90,7 @@ mobj_t **blocklinks;
 // Without special effect, this could be
 //  used as a PVS lookup as well.
 //
-byte *rejectmatrix;
+const byte *rejectmatrix;
 
 // Maintain single and multi player starting spots.
 #define MAX_DEATHMATCH_STARTS 10
@@ -103,24 +102,21 @@ mapthing_t playerstarts[MAXPLAYERS];
 //
 // P_LoadVertexes
 //
-void
-P_LoadVertexes(int lump) {
-	byte *data;
+static void
+P_LoadVertexes(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int i;
-	mapvertex_t *ml;
+	const mapvertex_t *ml;
 	vertex_t *li;
 
 	// Determine number of lumps:
 	//  total lump length / vertex record length.
-	numvertexes = W_LumpLength(lump) / sizeof(mapvertex_t);
+	numvertexes = lump->size / sizeof(mapvertex_t);
 
 	// Allocate zone memory for buffer.
 	vertexes = Z_Malloc(numvertexes * sizeof(vertex_t), PU_LEVEL, 0);
 
-	// Load data into cache.
-	data = W_CacheLumpNum(lump, PU_STATIC);
-
-	ml = (mapvertex_t *)data;
+	ml = (const mapvertex_t *)lump->data;
 	li = vertexes;
 
 	// Copy and convert vertex coordinates,
@@ -129,30 +125,26 @@ P_LoadVertexes(int lump) {
 		li->x = SHORT(ml->x) << FRACBITS;
 		li->y = SHORT(ml->y) << FRACBITS;
 	}
-
-	// Free buffer memory.
-	Z_Free(data);
 }
 
 //
 // P_LoadSegs
 //
-void
-P_LoadSegs(int lump) {
-	byte *data;
+static void
+P_LoadSegs(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int i;
-	mapseg_t *ml;
+	const mapseg_t *ml;
 	seg_t *li;
 	line_t *ldef;
 	int linedef;
 	int side;
 
-	numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
+	numsegs = lump->size / sizeof(mapseg_t);
 	segs    = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
 	memset(segs, 0, numsegs * sizeof(seg_t));
-	data = W_CacheLumpNum(lump, PU_STATIC);
 
-	ml = (mapseg_t *)data;
+	ml = (const mapseg_t *)lump->data;
 	li = segs;
 	for(i = 0; i < numsegs; i++, li++, ml++) {
 		li->v1 = &vertexes[SHORT(ml->v1)];
@@ -171,25 +163,22 @@ P_LoadSegs(int lump) {
 		else
 			li->backsector = 0;
 	}
-
-	Z_Free(data);
 }
 
 //
 // P_LoadSubsectors
 //
-void
-P_LoadSubsectors(int lump) {
-	byte *data;
+static void
+P_LoadSubsectors(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int i;
-	mapsubsector_t *ms;
+	const mapsubsector_t *ms;
 	subsector_t *ss;
 
-	numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_t);
+	numsubsectors = lump->size / sizeof(mapsubsector_t);
 	subsectors    = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
-	data          = W_CacheLumpNum(lump, PU_STATIC);
 
-	ms = (mapsubsector_t *)data;
+	ms = (const mapsubsector_t *)lump->data;
 	memset(subsectors, 0, numsubsectors * sizeof(subsector_t));
 	ss = subsectors;
 
@@ -197,26 +186,23 @@ P_LoadSubsectors(int lump) {
 		ss->numlines  = SHORT(ms->numsegs);
 		ss->firstline = SHORT(ms->firstseg);
 	}
-
-	Z_Free(data);
 }
 
 //
 // P_LoadSectors
 //
-void
-P_LoadSectors(int lump) {
-	byte *data;
+static void
+P_LoadSectors(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int i;
-	mapsector_t *ms;
+	const mapsector_t *ms;
 	sector_t *ss;
 
-	numsectors = W_LumpLength(lump) / sizeof(mapsector_t);
+	numsectors = lump->size / sizeof(mapsector_t);
 	sectors    = Z_Malloc(numsectors * sizeof(sector_t), PU_LEVEL, 0);
 	memset(sectors, 0, numsectors * sizeof(sector_t));
-	data = W_CacheLumpNum(lump, PU_STATIC);
 
-	ms = (mapsector_t *)data;
+	ms = (const mapsector_t *)lump->data;
 	ss = sectors;
 	for(i = 0; i < numsectors; i++, ss++, ms++) {
 		ss->floorheight   = SHORT(ms->floorheight) << FRACBITS;
@@ -228,27 +214,24 @@ P_LoadSectors(int lump) {
 		ss->tag           = SHORT(ms->tag);
 		ss->thinglist     = NULL;
 	}
-
-	Z_Free(data);
 }
 
 //
 // P_LoadNodes
 //
-void
-P_LoadNodes(int lump) {
-	byte *data;
+static void
+P_LoadNodes(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int i;
 	int j;
 	int k;
-	mapnode_t *mn;
+	const mapnode_t *mn;
 	node_t *no;
 
-	numnodes = W_LumpLength(lump) / sizeof(mapnode_t);
+	numnodes = lump->size / sizeof(mapnode_t);
 	nodes    = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
-	data     = W_CacheLumpNum(lump, PU_STATIC);
 
-	mn = (mapnode_t *)data;
+	mn = (const mapnode_t *)lump->data;
 	no = nodes;
 
 	for(i = 0; i < numnodes; i++, no++, mn++) {
@@ -262,27 +245,19 @@ P_LoadNodes(int lump) {
 				no->bbox[j][k] = SHORT(mn->bbox[j][k]) << FRACBITS;
 		}
 	}
-
-	Z_Free(data);
 }
 
 //
 // P_LoadThings
 //
-void
-P_LoadThings(int lump) {
-	byte *data;
-	int i;
-	mapthing_t *mt;
-	int numthings;
-	boolean spawn;
+static void
+P_LoadThings(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
+	const mapthing_t *mt = lump->data;
+	const mapthing_t *mtend = mt + lump->size / sizeof(*mt);
 
-	data      = W_CacheLumpNum(lump, PU_STATIC);
-	numthings = W_LumpLength(lump) / sizeof(mapthing_t);
-
-	mt = (mapthing_t *)data;
-	for(i = 0; i < numthings; i++, mt++) {
-		spawn = true;
+	while(mt != mtend) {
+		boolean spawn = true;
 
 		// Do not spawn cool, new monsters if !commercial
 		if(gamemode != commercial) {
@@ -305,37 +280,38 @@ P_LoadThings(int lump) {
 			break;
 
 		// Do spawn all other stuff.
-		mt->x       = SHORT(mt->x);
-		mt->y       = SHORT(mt->y);
-		mt->angle   = SHORT(mt->angle);
-		mt->type    = SHORT(mt->type);
-		mt->options = SHORT(mt->options);
+		const mapthing_t localmt = {
+			.x       = SHORT(mt->x),
+			.y       = SHORT(mt->y),
+			.angle   = SHORT(mt->angle),
+			.type    = SHORT(mt->type),
+			.options = SHORT(mt->options),
+		};
 
-		P_SpawnMapThing(mt);
+		P_SpawnMapThing(&localmt);
+
+		mt++;
 	}
-
-	Z_Free(data);
 }
 
 //
 // P_LoadLineDefs
 // Also counts secret lines for intermissions.
 //
-void
-P_LoadLineDefs(int lump) {
-	byte *data;
+static void
+P_LoadLineDefs(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int i;
-	maplinedef_t *mld;
+	const maplinedef_t *mld;
 	line_t *ld;
 	vertex_t *v1;
 	vertex_t *v2;
 
-	numlines = W_LumpLength(lump) / sizeof(maplinedef_t);
+	numlines = lump->size / sizeof(maplinedef_t);
 	lines    = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
 	memset(lines, 0, numlines * sizeof(line_t));
-	data = W_CacheLumpNum(lump, PU_STATIC);
 
-	mld = (maplinedef_t *)data;
+	mld = (const maplinedef_t *)lump->data;
 	ld  = lines;
 	for(i = 0; i < numlines; i++, mld++, ld++) {
 		ld->flags   = SHORT(mld->flags);
@@ -386,26 +362,23 @@ P_LoadLineDefs(int lump) {
 		else
 			ld->backsector = 0;
 	}
-
-	Z_Free(data);
 }
 
 //
 // P_LoadSideDefs
 //
-void
-P_LoadSideDefs(int lump) {
-	byte *data;
+static void
+P_LoadSideDefs(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int i;
-	mapsidedef_t *msd;
+	const mapsidedef_t *msd;
 	side_t *sd;
 
-	numsides = W_LumpLength(lump) / sizeof(mapsidedef_t);
+	numsides = lump->size / sizeof(mapsidedef_t);
 	sides    = Z_Malloc(numsides * sizeof(side_t), PU_LEVEL, 0);
 	memset(sides, 0, numsides * sizeof(side_t));
-	data = W_CacheLumpNum(lump, PU_STATIC);
 
-	msd = (mapsidedef_t *)data;
+	msd = (const mapsidedef_t *)lump->data;
 	sd  = sides;
 	for(i = 0; i < numsides; i++, msd++, sd++) {
 		sd->textureoffset = SHORT(msd->textureoffset) << FRACBITS;
@@ -415,29 +388,23 @@ P_LoadSideDefs(int lump) {
 		sd->midtexture    = R_TextureNumForName(msd->midtexture);
 		sd->sector        = &sectors[SHORT(msd->sector)];
 	}
-
-	Z_Free(data);
 }
 
 //
 // P_LoadBlockMap
 //
-void
-P_LoadBlockMap(int lump) {
-	int i;
+static void
+P_LoadBlockMap(lumpId_t id) {
+	const struct w_lump *lump = W_LumpForId(id);
 	int count;
 
-	blockmaplump = W_CacheLumpNum(lump, PU_LEVEL);
-	blockmap     = blockmaplump + 4;
-	count        = W_LumpLength(lump) / 2;
+	blockmaplump = lump->data;
+	count        = lump->size / 2;
 
-	for(i = 0; i < count; i++)
-		blockmaplump[i] = SHORT(blockmaplump[i]);
-
-	bmaporgx   = blockmaplump[0] << FRACBITS;
-	bmaporgy   = blockmaplump[1] << FRACBITS;
-	bmapwidth  = blockmaplump[2];
-	bmapheight = blockmaplump[3];
+	bmaporgx   = SHORT(blockmaplump[0]) << FRACBITS;
+	bmaporgy   = SHORT(blockmaplump[1]) << FRACBITS;
+	bmapwidth  = SHORT(blockmaplump[2]);
+	bmapheight = SHORT(blockmaplump[3]);
 
 	// clear out mobj chains
 	count      = sizeof(*blocklinks) * bmapwidth * bmapheight;
@@ -562,9 +529,6 @@ P_SetupLevel(int episode,
 	// UNUSED W_Profile ();
 	P_InitThinkers();
 
-	// if working with a devlopment map, reload it
-	W_Reload();
-
 	// find map name
 	if(gamemode == commercial) {
 		if(map < 10)
@@ -579,7 +543,7 @@ P_SetupLevel(int episode,
 		lumpname[4] = 0;
 	}
 
-	lumpnum = W_GetNumForName(lumpname);
+	lumpnum = W_GetIdForName(lumpname);
 
 	leveltime = 0;
 
@@ -594,7 +558,7 @@ P_SetupLevel(int episode,
 	P_LoadNodes(lumpnum + ML_NODES);
 	P_LoadSegs(lumpnum + ML_SEGS);
 
-	rejectmatrix = W_CacheLumpNum(lumpnum + ML_REJECT, PU_LEVEL);
+	rejectmatrix = W_LumpForId(lumpnum + ML_REJECT)->data;
 	P_GroupLines();
 
 	bodyqueslot  = 0;

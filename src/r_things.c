@@ -58,7 +58,7 @@ typedef struct
 fixed_t pspritescale;
 fixed_t pspriteiscale;
 
-lighttable_t **spritelights;
+const lighttable_t **spritelights;
 
 // constant arrays
 //  used for psprite clipping and initializing clipping
@@ -76,13 +76,13 @@ int numsprites;
 
 spriteframe_t sprtemp[29];
 int maxframe;
-char *spritename;
+const char *spritename;
 
 //
 // R_InstallSpriteLump
 // Local function for R_InitSprites.
 //
-void
+static void
 R_InstallSpriteLump(int lump,
 	unsigned frame,
 	unsigned rotation,
@@ -157,60 +157,57 @@ R_InstallSpriteLump(int lump,
 // The rotation character can be 0 to signify no rotations.
 //
 void
-R_InitSpriteDefs(char **namelist) {
-	char **check;
-	int i;
-	int l;
-	int intname;
+R_InitSpriteDefs(const char **namelist) {
 	int frame;
 	int rotation;
-	int start;
-	int end;
 	int patched;
 
 	// count the number of sprite names
-	check = namelist;
-	while(*check != NULL)
-		check++;
+	const char **namelistend = namelist;
 
-	numsprites = check - namelist;
+	while(*namelistend != NULL)
+		namelistend++;
+
+	numsprites = namelistend - namelist;
 
 	if(!numsprites)
 		return;
 
 	sprites = Z_Malloc(numsprites * sizeof(*sprites), PU_STATIC, NULL);
 
-	start = firstspritelump - 1;
-	end   = lastspritelump + 1;
+	const lumpId_t start = firstspritelump;
+	const lumpId_t end   = lastspritelump + 1;
 
 	// scan all the lump names for each of the names,
 	//  noting the highest frame letter.
 	// Just compare 4 characters as ints
-	for(i = 0; i < numsprites; i++) {
+	for(int i = 0; i < numsprites; i++) {
 		spritename = namelist[i];
 		memset(sprtemp, -1, sizeof(sprtemp));
 
 		maxframe = -1;
-		intname  = *(int *)namelist[i];
 
+		const uint32_t intname = *(uint32_t *)namelist[i];
 		// scan the lumps,
 		//  filling in the frames for whatever is found
-		for(l = start + 1; l < end; l++) {
-			if(*(int *)lumpinfo[l].name == intname) {
-				frame    = lumpinfo[l].name[4] - 'A';
-				rotation = lumpinfo[l].name[5] - '0';
+		for(lumpId_t id = start; id < end; id++) {
+			const struct w_lump *lump = W_LumpForId(id);
+
+			if(*(uint32_t *)lump->name == intname) {
+				frame    = lump->name[4] - 'A';
+				rotation = lump->name[5] - '0';
 
 				if(modifiedgame)
-					patched = W_GetNumForName(lumpinfo[l].name);
+					patched = W_GetIdForName(lump->name);
 				else
-					patched = l;
+					patched = id;
 
 				R_InstallSpriteLump(patched, frame, rotation, false);
 
-				if(lumpinfo[l].name[6]) {
-					frame    = lumpinfo[l].name[6] - 'A';
-					rotation = lumpinfo[l].name[7] - '0';
-					R_InstallSpriteLump(l, frame, rotation, true);
+				if(lump->name[6]) {
+					frame    = lump->name[6] - 'A';
+					rotation = lump->name[7] - '0';
+					R_InstallSpriteLump(id, frame, rotation, true);
 				}
 			}
 		}
@@ -268,7 +265,7 @@ int newvissprite;
 // Called at program start.
 //
 void
-R_InitSprites(char **namelist) {
+R_InitSprites(const char **namelist) {
 	int i;
 
 	for(i = 0; i < SCREENWIDTH; i++) {
@@ -361,9 +358,9 @@ R_DrawVisSprite(vissprite_t *vis,
 	column_t *column;
 	int texturecolumn;
 	fixed_t frac;
-	patch_t *patch;
+	const patch_t *patch;
 
-	patch = W_CacheLumpNum(vis->patch + firstspritelump, PU_CACHE);
+	patch = W_LumpForId(vis->patch + firstspritelump)->data;
 
 	dc_colormap = vis->colormap;
 

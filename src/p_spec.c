@@ -146,7 +146,7 @@ P_InitPicAnims(void) {
 			lastanim->picnum  = R_TextureNumForName(animdefs[i].endname);
 			lastanim->basepic = R_TextureNumForName(animdefs[i].startname);
 		} else {
-			if(W_CheckNumForName(animdefs[i].startname) == -1)
+			if(W_FindIdForName(animdefs[i].startname) == -1)
 				continue;
 
 			lastanim->picnum  = R_FlatNumForName(animdefs[i].endname);
@@ -1132,7 +1132,7 @@ P_SpawnSpecials(void) {
 	int episode;
 
 	episode = 1;
-	if(W_CheckNumForName("texture2") >= 0)
+	if(W_FindIdForName("texture2") >= 0)
 		episode = 2;
 
 	// See if -TIMER needs to be used.

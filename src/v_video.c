@@ -110,7 +110,7 @@ void
 V_DrawPatch(int x,
 	int y,
 	int scrn,
-	patch_t *patch) {
+	const patch_t *patch) {
 
 	int count;
 	int col;
@@ -171,7 +171,7 @@ void
 V_DrawPatchFlipped(int x,
 	int y,
 	int scrn,
-	patch_t *patch) {
+	const patch_t *patch) {
 
 	int count;
 	int col;
@@ -229,7 +229,7 @@ void
 V_DrawPatchDirect(int x,
 	int y,
 	int scrn,
-	patch_t *patch) {
+	const patch_t *patch) {
 	V_DrawPatch(x, y, scrn, patch);
 
 	/*

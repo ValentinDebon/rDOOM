@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include "m_bbox.h"
+#include "m_swap.h"
 
 #include "doomdef.h"
 #include "p_local.h"
@@ -410,7 +411,7 @@ P_BlockLinesIterator(int x,
 	int y,
 	boolean (*func)(line_t *)) {
 	int offset;
-	short *list;
+	const short *list;
 	line_t *ld;
 
 	if(x < 0
@@ -422,10 +423,10 @@ P_BlockLinesIterator(int x,
 
 	offset = y * bmapwidth + x;
 
-	offset = *(blockmap + offset);
+	offset = SHORT(blockmaplump[offset + 4]);
 
-	for(list = blockmaplump + offset; *list != -1; list++) {
-		ld = &lines[*list];
+	for(list = blockmaplump + offset; SHORT(*list) != -1; list++) {
+		ld = lines + SHORT(*list);
 
 		if(ld->validcount == validcount)
 			continue; // line has already been checked

@@ -64,12 +64,12 @@ extern int loopcount;
 #define MAXLIGHTZ 128
 #define LIGHTZSHIFT 20
 
-extern lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
-extern lighttable_t *scalelightfixed[MAXLIGHTSCALE];
-extern lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
+extern const lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
+extern const lighttable_t *scalelightfixed[MAXLIGHTSCALE];
+extern const lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
 
 extern int extralight;
-extern lighttable_t *fixedcolormap;
+extern const lighttable_t *fixedcolormap;
 
 // Number of diminishing brightness levels.
 // There a 0-31, i.e. 32 LUT in the COLORMAP lump.

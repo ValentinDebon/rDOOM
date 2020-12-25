@@ -143,7 +143,7 @@ fixed_t *spritewidth;
 fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
-lighttable_t *colormaps;
+const lighttable_t *colormaps;
 
 //
 // MAPTEXTURE_T CACHING
@@ -205,7 +205,7 @@ R_GenerateComposite(int texnum) {
 	byte *block;
 	texture_t *texture;
 	texpatch_t *patch;
-	patch_t *realpatch;
+	const patch_t *realpatch;
 	int x;
 	int x1;
 	int x2;
@@ -229,7 +229,7 @@ R_GenerateComposite(int texnum) {
 	for(i = 0, patch = texture->patches;
 		i < texture->patchcount;
 		i++, patch++) {
-		realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
+		realpatch = W_LumpForId(patch->patch)->data;
 		x1        = patch->originx;
 		x2        = x1 + SHORT(realpatch->width);
 
@@ -268,7 +268,7 @@ R_GenerateLookup(int texnum) {
 	texture_t *texture;
 	byte *patchcount; // patchcount[texture->width]
 	texpatch_t *patch;
-	patch_t *realpatch;
+	const patch_t *realpatch;
 	int x;
 	int x1;
 	int x2;
@@ -296,7 +296,7 @@ R_GenerateLookup(int texnum) {
 	for(i = 0, patch = texture->patches;
 		i < texture->patchcount;
 		i++, patch++) {
-		realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
+		realpatch = W_LumpForId(patch->patch)->data;
 		x1        = patch->originx;
 		x2        = x1 + SHORT(realpatch->width);
 
@@ -340,7 +340,7 @@ R_GenerateLookup(int texnum) {
 //
 // R_GetColumn
 //
-byte *
+const uint8_t *
 R_GetColumn(int tex,
 	int col) {
 	int lump;
@@ -351,7 +351,7 @@ R_GetColumn(int tex,
 	ofs  = texturecolumnofs[tex][col];
 
 	if(lump > 0)
-		return (byte *)W_CacheLumpNum(lump, PU_CACHE) + ofs;
+		return (const uint8_t *)W_LumpForId(lump)->data + ofs;
 
 	if(!texturecomposite[tex])
 		R_GenerateComposite(tex);
@@ -374,13 +374,13 @@ R_InitTextures(void) {
 	int i;
 	int j;
 
-	int *maptex;
-	int *maptex2;
-	int *maptex1;
+	const int *maptex;
+	const int *maptex2;
+	const int *maptex1;
 
 	char name[9];
-	char *names;
-	char *name_p;
+	const char *names;
+	const char *name_p;
 
 	int *patchlookup;
 
@@ -392,7 +392,7 @@ R_InitTextures(void) {
 	int numtextures1;
 	int numtextures2;
 
-	int *directory;
+	const int *directory;
 
 	int temp1;
 	int temp2;
@@ -400,29 +400,31 @@ R_InitTextures(void) {
 
 	// Load the patch names from pnames.lmp.
 	name[8]       = 0;
-	names         = W_CacheLumpName("PNAMES", PU_STATIC);
-	nummappatches = LONG(*((int *)names));
+	names         = W_LumpForName("PNAMES")->data;
+	nummappatches = LONG(*(uint32_t *)names);
 	name_p        = names + 4;
 	patchlookup   = alloca(nummappatches * sizeof(*patchlookup));
 
 	for(i = 0; i < nummappatches; i++) {
 		strncpy(name, name_p + i * 8, 8);
-		patchlookup[i] = W_CheckNumForName(name);
+		patchlookup[i] = W_FindIdForName(name);
 	}
-	Z_Free(names);
 
 	// Load the map texture definitions from textures.lmp.
 	// The data is contained in one or two lumps,
 	//  TEXTURE1 for shareware, plus TEXTURE2 for commercial.
-	maptex = maptex1 = W_CacheLumpName("TEXTURE1", PU_STATIC);
+	const struct w_lump *texture1_lump = W_LumpForName("TEXTURE1");
+	maptex = maptex1 = texture1_lump->data;
 	numtextures1     = LONG(*maptex);
-	maxoff           = W_LumpLength(W_GetNumForName("TEXTURE1"));
+	maxoff           = texture1_lump->size;
 	directory        = maptex + 1;
 
-	if(W_CheckNumForName("TEXTURE2") != -1) {
-		maptex2      = W_CacheLumpName("TEXTURE2", PU_STATIC);
+	const lumpId_t texture2_id = W_FindIdForName("TEXTURE2");
+	if(texture2_id != -1) {
+		const struct w_lump *texture2_lump = W_LumpForId(texture2_id);
+		maptex2      = texture2_lump->data;
 		numtextures2 = LONG(*maptex2);
-		maxoff2      = W_LumpLength(W_GetNumForName("TEXTURE2"));
+		maxoff2      = texture2_lump->size;
 	} else {
 		maptex2      = NULL;
 		numtextures2 = 0;
@@ -441,8 +443,8 @@ R_InitTextures(void) {
 	totalwidth = 0;
 
 	//	Really complex printing shit...
-	temp1 = W_GetNumForName("S_START"); // P_???????
-	temp2 = W_GetNumForName("S_END") - 1;
+	temp1 = W_FindIdForName("S_START"); // P_???????
+	temp2 = W_FindIdForName("S_END") - 1;
 	temp3 = ((temp2 - temp1 + 63) / 64) + ((numtextures + 63) / 64);
 	printf("[");
 	for(i = 0; i < temp3; i++)
@@ -505,10 +507,6 @@ R_InitTextures(void) {
 		totalwidth += texture->width;
 	}
 
-	Z_Free(maptex1);
-	if(maptex2)
-		Z_Free(maptex2);
-
 	// Precalculate whatever possible.
 	for(i = 0; i < numtextures; i++)
 		R_GenerateLookup(i);
@@ -527,8 +525,8 @@ void
 R_InitFlats(void) {
 	int i;
 
-	firstflat = W_GetNumForName("F_START") + 1;
-	lastflat  = W_GetNumForName("F_END") - 1;
+	firstflat = W_GetIdForName("F_START") + 1;
+	lastflat  = W_GetIdForName("F_END") - 1;
 	numflats  = lastflat - firstflat + 1;
 
 	// Create translation table for global animation.
@@ -547,10 +545,10 @@ R_InitFlats(void) {
 void
 R_InitSpriteLumps(void) {
 	int i;
-	patch_t *patch;
+	const patch_t *patch;
 
-	firstspritelump = W_GetNumForName("S_START") + 1;
-	lastspritelump  = W_GetNumForName("S_END") - 1;
+	firstspritelump = W_GetIdForName("S_START") + 1;
+	lastspritelump  = W_GetIdForName("S_END") - 1;
 
 	numspritelumps  = lastspritelump - firstspritelump + 1;
 	spritewidth     = Z_Malloc(numspritelumps * 4, PU_STATIC, 0);
@@ -561,7 +559,7 @@ R_InitSpriteLumps(void) {
 		if(!(i & 63))
 			printf(".");
 
-		patch              = W_CacheLumpNum(firstspritelump + i, PU_CACHE);
+		patch              = W_LumpForId(firstspritelump + i)->data;
 		spritewidth[i]     = SHORT(patch->width) << FRACBITS;
 		spriteoffset[i]    = SHORT(patch->leftoffset) << FRACBITS;
 		spritetopoffset[i] = SHORT(patch->topoffset) << FRACBITS;
@@ -573,15 +571,7 @@ R_InitSpriteLumps(void) {
 //
 void
 R_InitColormaps(void) {
-	int lump, length;
-
-	// Load in the light tables,
-	//  256 byte align tables.
-	lump      = W_GetNumForName("COLORMAP");
-	length    = W_LumpLength(lump) + 255;
-	colormaps = Z_Malloc(length, PU_STATIC, 0);
-	colormaps = (byte *)(((intptr_t)colormaps + 255) & ~0xff);
-	W_ReadLump(lump, colormaps);
+	colormaps = W_LumpForName("COLORMAP")->data;
 }
 
 //
@@ -607,18 +597,17 @@ R_InitData(void) {
 // Retrieval, get a flat number for a flat name.
 //
 int
-R_FlatNumForName(char *name) {
-	int i;
+R_FlatNumForName(const char *name) {
+	const lumpId_t id = W_FindIdForName(name);
 	char namet[9];
 
-	i = W_CheckNumForName(name);
-
-	if(i == -1) {
+	if(id == -1) {
 		namet[8] = 0;
 		memcpy(namet, name, 8);
 		I_Error("R_FlatNumForName: %s not found", namet);
 	}
-	return i - firstflat;
+
+	return id - firstflat;
 }
 
 //
@@ -627,7 +616,7 @@ R_FlatNumForName(char *name) {
 // Filter out NoTexture indicator.
 //
 int
-R_CheckTextureNumForName(char *name) {
+R_CheckTextureNumForName(const char *name) {
 	int i;
 
 	// "NoTexture" marker.
@@ -647,7 +636,7 @@ R_CheckTextureNumForName(char *name) {
 //  aborts with error message.
 //
 int
-R_TextureNumForName(char *name) {
+R_TextureNumForName(const char *name) {
 	int i;
 
 	i = R_CheckTextureNumForName(name);
@@ -663,12 +652,15 @@ R_TextureNumForName(char *name) {
 // R_PrecacheLevel
 // Preloads all relevant graphics for the level.
 //
+/* NB: Replacing WAD I/O by file mapping deprecates the need for level pre-caching
 int flatmemory;
 int texturememory;
 int spritememory;
+*/
 
 void
 R_PrecacheLevel(void) {
+/*
 	char *flatpresent;
 	char *texturepresent;
 	char *spritepresent;
@@ -759,4 +751,5 @@ R_PrecacheLevel(void) {
 			}
 		}
 	}
+*/
 }

@@ -41,11 +41,11 @@ extern boolean automapactive;
 // Hack display negative frags.
 //  Loads and store the stminus lump.
 //
-patch_t *sttminus;
+const patch_t *sttminus;
 
 void
 STlib_init(void) {
-	sttminus = (patch_t *)W_CacheLumpName("STTMINUS", PU_STATIC);
+	sttminus = W_LumpForName("STTMINUS")->data;
 }
 
 // ?
@@ -53,7 +53,7 @@ void
 STlib_initNum(st_number_t *n,
 	int x,
 	int y,
-	patch_t **pl,
+	const patch_t **pl,
 	int *num,
 	boolean *on,
 	int width) {
@@ -140,10 +140,10 @@ void
 STlib_initPercent(st_percent_t *p,
 	int x,
 	int y,
-	patch_t **pl,
+	const patch_t **pl,
 	int *num,
 	boolean *on,
-	patch_t *percent) {
+	const patch_t *percent) {
 	STlib_initNum(&p->n, x, y, pl, num, on, 3);
 	p->p = percent;
 }
@@ -161,7 +161,7 @@ void
 STlib_initMultIcon(st_multicon_t *i,
 	int x,
 	int y,
-	patch_t **il,
+	const patch_t **il,
 	int *inum,
 	boolean *on) {
 	i->x       = x;
@@ -203,7 +203,7 @@ void
 STlib_initBinIcon(st_binicon_t *b,
 	int x,
 	int y,
-	patch_t *i,
+	const patch_t *i,
 	boolean *val,
 	boolean *on) {
 	b->x      = x;

@@ -264,7 +264,7 @@ static fixed_t scale_ftom;
 
 static player_t *plr; // the player represented by an arrow
 
-static patch_t *marknums[10];                 // numbers used for marking by the automap
+static const patch_t *marknums[10];           // numbers used for marking by the automap
 static mpoint_t markpoints[AM_NUMMARKPOINTS]; // where the points are
 static int markpointnum = 0;                  // next point to be assigned
 
@@ -472,26 +472,19 @@ AM_initVariables(void) {
 	ST_Responder(&st_notify);
 }
 
-//
-//
-//
 void
 AM_loadPics(void) {
-	int i;
-	char namebuf[9];
+	char name[9];
 
-	for(i = 0; i < 10; i++) {
-		sprintf(namebuf, "AMMNUM%d", i);
-		marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+	for(int i = 0; i < 10; i++) {
+		snprintf(name, sizeof(name), "AMMNUM%d", i);
+		marknums[i] = W_LumpForName(name)->data;
 	}
 }
 
 void
 AM_unloadPics(void) {
-	int i;
-
-	for(i = 0; i < 10; i++)
-		Z_ChangeTag(marknums[i], PU_CACHE);
+	/* Nothing to do, patches are lump-based */
 }
 
 void

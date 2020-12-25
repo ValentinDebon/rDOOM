@@ -301,31 +301,31 @@ static boolean st_armson;
 static boolean st_fragson;
 
 // main bar left
-static patch_t *sbar;
+static const patch_t *sbar;
 
 // 0-9, tall numbers
-static patch_t *tallnum[10];
+static const patch_t *tallnum[10];
 
 // tall % sign
-static patch_t *tallpercent;
+static const patch_t *tallpercent;
 
 // 0-9, short, yellow (,different!) numbers
-static patch_t *shortnum[10];
+static const patch_t *shortnum[10];
 
 // 3 key-cards, 3 skulls
-static patch_t *keys[NUMCARDS];
+static const patch_t *keys[NUMCARDS];
 
 // face status patches
-static patch_t *faces[ST_NUMFACES];
+static const patch_t *faces[ST_NUMFACES];
 
 // face background
-static patch_t *faceback;
+static const patch_t *faceback;
 
 // main bar right
-static patch_t *armsbg;
+static const patch_t *armsbg;
 
 // weapon ownership patches
-static patch_t *arms[6][2];
+static const patch_t *arms[6][2];
 
 // ready-weapon widget
 static st_number_t w_ready;
@@ -952,7 +952,7 @@ void
 ST_doPaletteStuff(void) {
 
 	int palette;
-	byte *pal;
+	const uint8_t *pal;
 	int cnt;
 	int bzc;
 
@@ -992,7 +992,7 @@ ST_doPaletteStuff(void) {
 
 	if(palette != st_palette) {
 		st_palette = palette;
-		pal        = (byte *)W_CacheLumpNum(lu_palette, PU_CACHE) + palette * 768;
+		pal        = (const uint8_t *)W_LumpForId(lu_palette)->data + palette * 768;
 		I_SetPalette(pal);
 	}
 }
@@ -1077,31 +1077,31 @@ ST_loadGraphics(void) {
 	// Load the numbers, tall and short
 	for(i = 0; i < 10; i++) {
 		sprintf(namebuf, "STTNUM%d", i);
-		tallnum[i] = (patch_t *)W_CacheLumpName(namebuf, PU_STATIC);
+		tallnum[i] = W_LumpForName(namebuf)->data;
 
 		sprintf(namebuf, "STYSNUM%d", i);
-		shortnum[i] = (patch_t *)W_CacheLumpName(namebuf, PU_STATIC);
+		shortnum[i] = W_LumpForName(namebuf)->data;
 	}
 
 	// Load percent key.
 	//Note: why not load STMINUS here, too?
-	tallpercent = (patch_t *)W_CacheLumpName("STTPRCNT", PU_STATIC);
+	tallpercent = W_LumpForName("STTPRCNT")->data;
 
 	// key cards
 	for(i = 0; i < NUMCARDS; i++) {
 		sprintf(namebuf, "STKEYS%d", i);
-		keys[i] = (patch_t *)W_CacheLumpName(namebuf, PU_STATIC);
+		keys[i] = W_LumpForName(namebuf)->data;
 	}
 
 	// arms background
-	armsbg = (patch_t *)W_CacheLumpName("STARMS", PU_STATIC);
+	armsbg = W_LumpForName("STARMS")->data;
 
 	// arms ownership widgets
 	for(i = 0; i < 6; i++) {
 		sprintf(namebuf, "STGNUM%d", i + 2);
 
 		// gray #
-		arms[i][0] = (patch_t *)W_CacheLumpName(namebuf, PU_STATIC);
+		arms[i][0] = W_LumpForName(namebuf)->data;
 
 		// yellow #
 		arms[i][1] = shortnum[i + 2];
@@ -1109,42 +1109,42 @@ ST_loadGraphics(void) {
 
 	// face backgrounds for different color players
 	sprintf(namebuf, "STFB%d", consoleplayer);
-	faceback = (patch_t *)W_CacheLumpName(namebuf, PU_STATIC);
+	faceback = W_LumpForName(namebuf)->data;
 
 	// status bar background bits
-	sbar = (patch_t *)W_CacheLumpName("STBAR", PU_STATIC);
+	sbar = W_LumpForName("STBAR")->data;
 
 	// face states
 	facenum = 0;
 	for(i = 0; i < ST_NUMPAINFACES; i++) {
 		for(j = 0; j < ST_NUMSTRAIGHTFACES; j++) {
 			sprintf(namebuf, "STFST%d%d", i, j);
-			faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+			faces[facenum++] = W_LumpForName(namebuf)->data;
 		}
 		sprintf(namebuf, "STFTR%d0", i); // turn right
-		faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+		faces[facenum++] = W_LumpForName(namebuf)->data;
 		sprintf(namebuf, "STFTL%d0", i); // turn left
-		faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+		faces[facenum++] = W_LumpForName(namebuf)->data;
 		sprintf(namebuf, "STFOUCH%d", i); // ouch!
-		faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+		faces[facenum++] = W_LumpForName(namebuf)->data;
 		sprintf(namebuf, "STFEVL%d", i); // evil grin ;)
-		faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+		faces[facenum++] = W_LumpForName(namebuf)->data;
 		sprintf(namebuf, "STFKILL%d", i); // pissed off
-		faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+		faces[facenum++] = W_LumpForName(namebuf)->data;
 	}
-	faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
-	faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
+	faces[facenum++] = W_LumpForName("STFGOD0")->data;
+	faces[facenum++] = W_LumpForName("STFDEAD0")->data;
 }
 
 void
 ST_loadData(void) {
-	lu_palette = W_GetNumForName("PLAYPAL");
+	lu_palette = W_GetIdForName("PLAYPAL");
 	ST_loadGraphics();
 }
 
 void
 ST_unloadGraphics(void) {
-
+/*
 	int i;
 
 	// unload the numbers, tall and short
@@ -1171,7 +1171,7 @@ ST_unloadGraphics(void) {
 
 	for(i = 0; i < ST_NUMFACES; i++)
 		Z_ChangeTag(faces[i], PU_CACHE);
-
+*/
 	// Note: nobody ain't seen no unloading
 	//   of stminus yet. Dude.
 }
@@ -1388,7 +1388,7 @@ ST_Stop(void) {
 	if(st_stopped)
 		return;
 
-	I_SetPalette(W_CacheLumpNum(lu_palette, PU_CACHE));
+	I_SetPalette(W_LumpForId(lu_palette)->data);
 
 	st_stopped = true;
 }

@@ -90,8 +90,8 @@ I_InitGraphics(void) {
 }
 
 void
-I_SetPalette(byte *palette) {
-	const byte* const paletteend = palette + 768;
+I_SetPalette(const uint8_t *palette) {
+	const uint8_t* const paletteend = palette + 768;
 	uint8_t *colormap = i_video.colormap;
 
 	while(palette != paletteend) {
@@ -162,7 +162,7 @@ I_WaitVBL(int count) {
 }
 
 void
-I_ReadScreen(byte *scr) {
+I_ReadScreen(uint8_t *scr) {
 	memcpy(scr, screens[0], SCREENWIDTH*SCREENHEIGHT);
 }
 

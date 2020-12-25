@@ -43,7 +43,7 @@ typedef struct
 	int x;
 	int y;
 
-	patch_t **f;                  // font
+	const patch_t **f;                  // font
 	int sc;                       // start character
 	char l[HU_MAXLINELENGTH + 1]; // line of text
 	int len;                      // current line length
@@ -99,7 +99,7 @@ void
 HUlib_clearTextLine(hu_textline_t *t);
 
 void
-HUlib_initTextLine(hu_textline_t *t, int x, int y, patch_t **f, int sc);
+HUlib_initTextLine(hu_textline_t *t, int x, int y, const patch_t **f, int sc);
 
 // returns success
 boolean
@@ -127,7 +127,7 @@ HUlib_initSText(hu_stext_t *s,
 	int x,
 	int y,
 	int h,
-	patch_t **font,
+	const patch_t **font,
 	int startchar,
 	boolean *on);
 
@@ -154,7 +154,7 @@ void
 HUlib_initIText(hu_itext_t *it,
 	int x,
 	int y,
-	patch_t **font,
+	const patch_t **font,
 	int startchar,
 	boolean *on);
 
