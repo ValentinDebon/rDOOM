@@ -24,6 +24,8 @@
 
 #include "p_local.h"
 
+#include "r_main.h"
+
 #include "doomstat.h"
 
 // Index of the special effects (INVUL inverse) map.
@@ -231,7 +233,7 @@ P_PlayerThink(player_t *player) {
 
 	P_CalcHeight(player);
 
-	if(player->mo->subsector->sector->special)
+	if(player->mo->subsector->sector->special_type)
 		P_PlayerInSpecialSector(player);
 
 	// Check for weapon change.

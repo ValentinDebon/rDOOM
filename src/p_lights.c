@@ -43,10 +43,10 @@ T_FireFlicker(fireflicker_t *flick) {
 
 	amount = (P_Random() & 3) * 16;
 
-	if(flick->sector->lightlevel - amount < flick->minlight)
-		flick->sector->lightlevel = flick->minlight;
+	if(flick->sector->lighting - amount < flick->minlight)
+		flick->sector->lighting = flick->minlight;
 	else
-		flick->sector->lightlevel = flick->maxlight - amount;
+		flick->sector->lighting = flick->maxlight - amount;
 
 	flick->count = 4;
 }
@@ -55,12 +55,12 @@ T_FireFlicker(fireflicker_t *flick) {
 // P_SpawnFireFlicker
 //
 void
-P_SpawnFireFlicker(sector_t *sector) {
+P_SpawnFireFlicker(struct p_sector *sector) {
 	fireflicker_t *flick;
 
 	// Note that we are resetting sector attributes.
 	// Nothing special about it during gameplay.
-	sector->special = 0;
+	sector->special_type = 0;
 
 	flick = Z_Malloc(sizeof(*flick), PU_LEVSPEC, 0);
 
@@ -68,8 +68,8 @@ P_SpawnFireFlicker(sector_t *sector) {
 
 	flick->thinker.function.acp1 = (actionf_p1)T_FireFlicker;
 	flick->sector                = sector;
-	flick->maxlight              = sector->lightlevel;
-	flick->minlight              = P_FindMinSurroundingLight(sector, sector->lightlevel) + 16;
+	flick->maxlight              = sector->lighting;
+	flick->minlight              = P_FindMinSurroundingLight(sector, sector->lighting) + 16;
 	flick->count                 = 4;
 }
 
@@ -86,11 +86,11 @@ T_LightFlash(lightflash_t *flash) {
 	if(--flash->count)
 		return;
 
-	if(flash->sector->lightlevel == flash->maxlight) {
-		flash->sector->lightlevel = flash->minlight;
+	if(flash->sector->lighting == flash->maxlight) {
+		flash->sector->lighting = flash->minlight;
 		flash->count              = (P_Random() & flash->mintime) + 1;
 	} else {
-		flash->sector->lightlevel = flash->maxlight;
+		flash->sector->lighting = flash->maxlight;
 		flash->count              = (P_Random() & flash->maxtime) + 1;
 	}
 }
@@ -101,11 +101,11 @@ T_LightFlash(lightflash_t *flash) {
 // for specials that spawn thinkers
 //
 void
-P_SpawnLightFlash(sector_t *sector) {
+P_SpawnLightFlash(struct p_sector *sector) {
 	lightflash_t *flash;
 
 	// nothing special about it during gameplay
-	sector->special = 0;
+	sector->special_type = 0;
 
 	flash = Z_Malloc(sizeof(*flash), PU_LEVSPEC, 0);
 
@@ -113,9 +113,9 @@ P_SpawnLightFlash(sector_t *sector) {
 
 	flash->thinker.function.acp1 = (actionf_p1)T_LightFlash;
 	flash->sector                = sector;
-	flash->maxlight              = sector->lightlevel;
+	flash->maxlight              = sector->lighting;
 
-	flash->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
+	flash->minlight = P_FindMinSurroundingLight(sector, sector->lighting);
 	flash->maxtime  = 64;
 	flash->mintime  = 7;
 	flash->count    = (P_Random() & flash->maxtime) + 1;
@@ -133,11 +133,11 @@ T_StrobeFlash(strobe_t *flash) {
 	if(--flash->count)
 		return;
 
-	if(flash->sector->lightlevel == flash->minlight) {
-		flash->sector->lightlevel = flash->maxlight;
+	if(flash->sector->lighting == flash->minlight) {
+		flash->sector->lighting = flash->maxlight;
 		flash->count              = flash->brighttime;
 	} else {
-		flash->sector->lightlevel = flash->minlight;
+		flash->sector->lighting = flash->minlight;
 		flash->count              = flash->darktime;
 	}
 }
@@ -148,7 +148,7 @@ T_StrobeFlash(strobe_t *flash) {
 // for specials that spawn thinkers
 //
 void
-P_SpawnStrobeFlash(sector_t *sector,
+P_SpawnStrobeFlash(struct p_sector *sector,
 	int fastOrSlow,
 	int inSync) {
 	strobe_t *flash;
@@ -161,14 +161,14 @@ P_SpawnStrobeFlash(sector_t *sector,
 	flash->darktime              = fastOrSlow;
 	flash->brighttime            = STROBEBRIGHT;
 	flash->thinker.function.acp1 = (actionf_p1)T_StrobeFlash;
-	flash->maxlight              = sector->lightlevel;
-	flash->minlight              = P_FindMinSurroundingLight(sector, sector->lightlevel);
+	flash->maxlight              = sector->lighting;
+	flash->minlight              = P_FindMinSurroundingLight(sector, sector->lighting);
 
 	if(flash->minlight == flash->maxlight)
 		flash->minlight = 0;
 
 	// nothing special about it during gameplay
-	sector->special = 0;
+	sector->special_type = 0;
 
 	if(!inSync)
 		flash->count = (P_Random() & 7) + 1;
@@ -180,14 +180,14 @@ P_SpawnStrobeFlash(sector_t *sector,
 // Start strobing lights (usually from a trigger)
 //
 void
-EV_StartLightStrobing(line_t *line) {
+EV_StartLightStrobing(const struct p_line *line) {
 	int secnum;
-	sector_t *sec;
+	struct p_sector *sec;
 
 	secnum = -1;
 	while((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0) {
-		sec = &sectors[secnum];
-		if(sec->specialdata)
+		sec = p_level.sectors + secnum;
+		if(sec->special_data)
 			continue;
 
 		P_SpawnStrobeFlash(sec, SLOWDARK, 0);
@@ -198,28 +198,28 @@ EV_StartLightStrobing(line_t *line) {
 // TURN LINE'S TAG LIGHTS OFF
 //
 void
-EV_TurnTagLightsOff(line_t *line) {
+EV_TurnTagLightsOff(const struct p_line *line) {
 	int i;
 	int j;
 	int min;
-	sector_t *sector;
-	sector_t *tsec;
-	line_t *templine;
+	struct p_sector *sector;
+	const struct p_sector *tsec;
+	const struct p_line *templine;
 
-	sector = sectors;
+	sector = p_level.sectors;
 
-	for(j = 0; j < numsectors; j++, sector++) {
-		if(sector->tag == line->tag) {
-			min = sector->lightlevel;
-			for(i = 0; i < sector->linecount; i++) {
+	for(j = 0; j < p_level.sectors_count; j++, sector++) {
+		if(sector->tag == line->sector_tag) {
+			min = sector->lighting;
+			for(i = 0; i < sector->lines_count; i++) {
 				templine = sector->lines[i];
 				tsec     = getNextSector(templine, sector);
 				if(!tsec)
 					continue;
-				if(tsec->lightlevel < min)
-					min = tsec->lightlevel;
+				if(tsec->lighting < min)
+					min = tsec->lighting;
 			}
-			sector->lightlevel = min;
+			sector->lighting = min;
 		}
 	}
 }
@@ -228,34 +228,34 @@ EV_TurnTagLightsOff(line_t *line) {
 // TURN LINE'S TAG LIGHTS ON
 //
 void
-EV_LightTurnOn(line_t *line,
+EV_LightTurnOn(const struct p_line *line,
 	int bright) {
 	int i;
 	int j;
-	sector_t *sector;
-	sector_t *temp;
-	line_t *templine;
+	struct p_sector *sector;
+	const struct p_sector *temp;
+	const struct p_line *templine;
 
-	sector = sectors;
+	sector = p_level.sectors;
 
-	for(i = 0; i < numsectors; i++, sector++) {
-		if(sector->tag == line->tag) {
+	for(i = 0; i < p_level.sectors_count; i++, sector++) {
+		if(sector->tag == line->sector_tag) {
 			// bright = 0 means to search
 			// for highest light level
 			// surrounding sector
 			if(!bright) {
-				for(j = 0; j < sector->linecount; j++) {
+				for(j = 0; j < sector->lines_count; j++) {
 					templine = sector->lines[j];
 					temp     = getNextSector(templine, sector);
 
 					if(!temp)
 						continue;
 
-					if(temp->lightlevel > bright)
-						bright = temp->lightlevel;
+					if(temp->lighting > bright)
+						bright = temp->lighting;
 				}
 			}
-			sector->lightlevel = bright;
+			sector->lighting = bright;
 		}
 	}
 }
@@ -269,18 +269,18 @@ T_Glow(glow_t *g) {
 	switch(g->direction) {
 	case -1:
 		// DOWN
-		g->sector->lightlevel -= GLOWSPEED;
-		if(g->sector->lightlevel <= g->minlight) {
-			g->sector->lightlevel += GLOWSPEED;
+		g->sector->lighting -= GLOWSPEED;
+		if(g->sector->lighting <= g->minlight) {
+			g->sector->lighting += GLOWSPEED;
 			g->direction = 1;
 		}
 		break;
 
 	case 1:
 		// UP
-		g->sector->lightlevel += GLOWSPEED;
-		if(g->sector->lightlevel >= g->maxlight) {
-			g->sector->lightlevel -= GLOWSPEED;
+		g->sector->lighting += GLOWSPEED;
+		if(g->sector->lighting >= g->maxlight) {
+			g->sector->lighting -= GLOWSPEED;
 			g->direction = -1;
 		}
 		break;
@@ -288,7 +288,7 @@ T_Glow(glow_t *g) {
 }
 
 void
-P_SpawnGlowingLight(sector_t *sector) {
+P_SpawnGlowingLight(struct p_sector *sector) {
 	glow_t *g;
 
 	g = Z_Malloc(sizeof(*g), PU_LEVSPEC, 0);
@@ -296,10 +296,10 @@ P_SpawnGlowingLight(sector_t *sector) {
 	P_AddThinker(&g->thinker);
 
 	g->sector                = sector;
-	g->minlight              = P_FindMinSurroundingLight(sector, sector->lightlevel);
-	g->maxlight              = sector->lightlevel;
+	g->minlight              = P_FindMinSurroundingLight(sector, sector->lighting);
+	g->maxlight              = sector->lighting;
 	g->thinker.function.acp1 = (actionf_p1)T_Glow;
 	g->direction             = -1;
 
-	sector->special = 0;
+	sector->special_type = 0;
 }

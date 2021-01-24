@@ -21,9 +21,7 @@
 #include "d_player.h"
 #include "r_data.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
+#include "p_local.h"
 
 //
 // POV related.
@@ -95,12 +93,12 @@ extern void (*spanfunc)(void);
 int
 R_PointOnSide(fixed_t x,
 	fixed_t y,
-	node_t *node);
+	const struct p_node *node);
 
 int
 R_PointOnSegSide(fixed_t x,
 	fixed_t y,
-	seg_t *line);
+	const struct p_segment *line);
 
 angle_t
 R_PointToAngle(fixed_t x,
@@ -119,7 +117,7 @@ R_PointToDist(fixed_t x,
 fixed_t
 R_ScaleFromGlobalAngle(angle_t visangle);
 
-subsector_t *
+struct p_subSector *
 R_PointInSubsector(fixed_t x,
 	fixed_t y);
 

@@ -291,7 +291,7 @@ F_TextWrite(void) {
 			continue;
 		}
 
-		w = SHORT(hu_font[c]->width);
+		w = LE_U16(hu_font[c]->width);
 		if(cx + w > SCREENWIDTH)
 			break;
 		V_DrawPatch(cx, cy, 0, hu_font[c]);
@@ -519,7 +519,6 @@ F_CastPrint(char *text) {
 	char *ch;
 	int c;
 	int cx;
-	int w;
 	int width;
 
 	// find width
@@ -536,8 +535,7 @@ F_CastPrint(char *text) {
 			continue;
 		}
 
-		w = SHORT(hu_font[c]->width);
-		width += w;
+		width += LE_U16(hu_font[c]->width);
 	}
 
 	// draw it
@@ -553,9 +551,8 @@ F_CastPrint(char *text) {
 			continue;
 		}
 
-		w = SHORT(hu_font[c]->width);
 		V_DrawPatch(cx, 180, 0, hu_font[c]);
-		cx += w;
+		cx += LE_U16(hu_font[c]->width);
 	}
 }
 
@@ -564,6 +561,8 @@ F_CastPrint(char *text) {
 //
 void
 F_CastDrawer(void) {
+	extern spritedef_t *sprites;
+	extern int numsprites;
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	int lump;
@@ -601,7 +600,7 @@ F_DrawPatchCol(int x,
 	uint8_t *desttop;
 	int count;
 
-	column  = (const column_t *)((const uint8_t *)patch + LONG(patch->columnofs[col]));
+	column  = (const column_t *)((const uint8_t *)patch + LE_U32(patch->columnofs[col]));
 	desttop = screens[0] + x;
 
 	// step through the posts in a column

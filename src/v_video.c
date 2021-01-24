@@ -120,13 +120,13 @@ V_DrawPatch(int x,
 	byte *source;
 	int w;
 
-	y -= SHORT(patch->topoffset);
-	x -= SHORT(patch->leftoffset);
+	y -= LE_S16(patch->topoffset);
+	x -= LE_S16(patch->leftoffset);
 #ifdef RANGECHECK
 	if(x < 0
-		|| x + SHORT(patch->width) > SCREENWIDTH
+		|| x + LE_S16(patch->width) > SCREENWIDTH
 		|| y < 0
-		|| y + SHORT(patch->height) > SCREENHEIGHT
+		|| y + LE_S16(patch->height) > SCREENHEIGHT
 		|| (unsigned)scrn > 4) {
 		fprintf(stderr, "Patch at %d,%d exceeds LFB\n", x, y);
 		// No I_Error abort - what is up with TNT.WAD?
@@ -136,15 +136,15 @@ V_DrawPatch(int x,
 #endif
 
 	if(!scrn)
-		V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+		V_MarkRect(x, y, LE_U16(patch->width), LE_U16(patch->height));
 
 	col     = 0;
 	desttop = screens[scrn] + y * SCREENWIDTH + x;
 
-	w = SHORT(patch->width);
+	w = LE_U16(patch->width);
 
 	for(; col < w; x++, col++, desttop++) {
-		column = (column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+		column = (column_t *)((byte *)patch + LE_U32(patch->columnofs[col]));
 
 		// step through the posts in a column
 		while(column->topdelta != 0xff) {
@@ -181,13 +181,13 @@ V_DrawPatchFlipped(int x,
 	byte *source;
 	int w;
 
-	y -= SHORT(patch->topoffset);
-	x -= SHORT(patch->leftoffset);
+	y -= LE_S16(patch->topoffset);
+	x -= LE_S16(patch->leftoffset);
 #ifdef RANGECHECK
 	if(x < 0
-		|| x + SHORT(patch->width) > SCREENWIDTH
+		|| x + LE_U16(patch->width) > SCREENWIDTH
 		|| y < 0
-		|| y + SHORT(patch->height) > SCREENHEIGHT
+		|| y + LE_U16(patch->height) > SCREENHEIGHT
 		|| (unsigned)scrn > 4) {
 		fprintf(stderr, "Patch origin %d,%d exceeds LFB\n", x, y);
 		I_Error("Bad V_DrawPatch in V_DrawPatchFlipped");
@@ -195,15 +195,15 @@ V_DrawPatchFlipped(int x,
 #endif
 
 	if(!scrn)
-		V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+		V_MarkRect(x, y, LE_U16(patch->width), LE_U16(patch->height));
 
 	col     = 0;
 	desttop = screens[scrn] + y * SCREENWIDTH + x;
 
-	w = SHORT(patch->width);
+	w = LE_U16(patch->width);
 
 	for(; col < w; x++, col++, desttop++) {
-		column = (column_t *)((byte *)patch + LONG(patch->columnofs[w - 1 - col]));
+		column = (column_t *)((byte *)patch + LE_U32(patch->columnofs[w - 1 - col]));
 
 		// step through the posts in a column
 		while(column->topdelta != 0xff) {

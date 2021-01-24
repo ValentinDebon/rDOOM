@@ -31,6 +31,8 @@
 // State.
 #include "r_state.h"
 
+#include "r_main.h"
+
 //
 // P_AproxDistance
 // Gives an estimation of distance (not exact)
@@ -53,27 +55,27 @@ P_AproxDistance(fixed_t dx,
 int
 P_PointOnLineSide(fixed_t x,
 	fixed_t y,
-	line_t *line) {
+	const struct p_line *line) {
 	fixed_t dx;
 	fixed_t dy;
 	fixed_t left;
 	fixed_t right;
 
 	if(!line->dx) {
-		if(x <= line->v1->x)
+		if(x <= line->first_vertex->x)
 			return line->dy > 0;
 
 		return line->dy < 0;
 	}
 	if(!line->dy) {
-		if(y <= line->v1->y)
+		if(y <= line->first_vertex->y)
 			return line->dx < 0;
 
 		return line->dx > 0;
 	}
 
-	dx = (x - line->v1->x);
-	dy = (y - line->v1->y);
+	dx = (x - line->first_vertex->x);
+	dy = (y - line->first_vertex->y);
 
 	left  = FixedMul(line->dy >> FRACBITS, dx);
 	right = FixedMul(dy, line->dx >> FRACBITS);
@@ -90,35 +92,35 @@ P_PointOnLineSide(fixed_t x,
 //
 int
 P_BoxOnLineSide(fixed_t *tmbox,
-	line_t *ld) {
+	const struct p_line *ld) {
 	int p1;
 	int p2;
 
-	switch(ld->slopetype) {
-	case ST_HORIZONTAL:
-		p1 = tmbox[BOXTOP] > ld->v1->y;
-		p2 = tmbox[BOXBOTTOM] > ld->v1->y;
+	switch(ld->slope_type) {
+	case SLOPE_TYPE_HORIZONTAL:
+		p1 = tmbox[BOXTOP] > ld->first_vertex->y;
+		p2 = tmbox[BOXBOTTOM] > ld->first_vertex->y;
 		if(ld->dx < 0) {
 			p1 ^= 1;
 			p2 ^= 1;
 		}
 		break;
 
-	case ST_VERTICAL:
-		p1 = tmbox[BOXRIGHT] < ld->v1->x;
-		p2 = tmbox[BOXLEFT] < ld->v1->x;
+	case SLOPE_TYPE_VERTICAL:
+		p1 = tmbox[BOXRIGHT] < ld->first_vertex->x;
+		p2 = tmbox[BOXLEFT] < ld->first_vertex->x;
 		if(ld->dy < 0) {
 			p1 ^= 1;
 			p2 ^= 1;
 		}
 		break;
 
-	case ST_POSITIVE:
+	case SLOPE_TYPE_POSITIVE:
 		p1 = P_PointOnLineSide(tmbox[BOXLEFT], tmbox[BOXTOP], ld);
 		p2 = P_PointOnLineSide(tmbox[BOXRIGHT], tmbox[BOXBOTTOM], ld);
 		break;
 
-	case ST_NEGATIVE:
+	case SLOPE_TYPE_NEGATIVE:
 		p1 = P_PointOnLineSide(tmbox[BOXRIGHT], tmbox[BOXTOP], ld);
 		p2 = P_PointOnLineSide(tmbox[BOXLEFT], tmbox[BOXBOTTOM], ld);
 		break;
@@ -177,10 +179,10 @@ P_PointOnDivlineSide(fixed_t x,
 // P_MakeDivline
 //
 void
-P_MakeDivline(line_t *li,
+P_MakeDivline(const struct p_line *li,
 	divline_t *dl) {
-	dl->x  = li->v1->x;
-	dl->y  = li->v1->y;
+	dl->x  = li->first_vertex->x;
+	dl->y  = li->first_vertex->y;
 	dl->dx = li->dx;
 	dl->dy = li->dy;
 }
@@ -258,30 +260,30 @@ fixed_t openrange;
 fixed_t lowfloor;
 
 void
-P_LineOpening(line_t *linedef) {
-	sector_t *front;
-	sector_t *back;
+P_LineOpening(const struct p_line *linedef) {
+	const struct p_sector *front;
+	const struct p_sector *back;
 
-	if(linedef->sidenum[1] == -1) {
+	if(linedef->sides[1] == -1) {
 		// single sided line
 		openrange = 0;
 		return;
 	}
 
-	front = linedef->frontsector;
-	back  = linedef->backsector;
+	front = linedef->front_sector;
+	back  = linedef->back_sector;
 
-	if(front->ceilingheight < back->ceilingheight)
-		opentop = front->ceilingheight;
+	if(front->ceiling_height < back->ceiling_height)
+		opentop = front->ceiling_height;
 	else
-		opentop = back->ceilingheight;
+		opentop = back->ceiling_height;
 
-	if(front->floorheight > back->floorheight) {
-		openbottom = front->floorheight;
-		lowfloor   = back->floorheight;
+	if(front->floor_height > back->floor_height) {
+		openbottom = front->floor_height;
+		lowfloor   = back->floor_height;
 	} else {
-		openbottom = back->floorheight;
-		lowfloor   = front->floorheight;
+		openbottom = back->floor_height;
+		lowfloor   = front->floor_height;
 	}
 
 	openrange = opentop - openbottom;
@@ -312,7 +314,7 @@ P_UnsetThingPosition(mobj_t *thing) {
 		if(thing->sprev)
 			thing->sprev->snext = thing->snext;
 		else
-			thing->subsector->sector->thinglist = thing->snext;
+			thing->subsector->sector->thing_list = thing->snext;
 	}
 
 	if(!(thing->flags & MF_NOBLOCKMAP)) {
@@ -324,12 +326,12 @@ P_UnsetThingPosition(mobj_t *thing) {
 		if(thing->bprev)
 			thing->bprev->bnext = thing->bnext;
 		else {
-			blockx = (thing->x - bmaporgx) >> MAPBLOCKSHIFT;
-			blocky = (thing->y - bmaporgy) >> MAPBLOCKSHIFT;
+			blockx = (thing->x - p_level.blockmap_origin_x) >> MAPBLOCKSHIFT;
+			blocky = (thing->y - p_level.blockmap_origin_y) >> MAPBLOCKSHIFT;
 
-			if(blockx >= 0 && blockx < bmapwidth
-				&& blocky >= 0 && blocky < bmapheight) {
-				blocklinks[blocky * bmapwidth + blockx] = thing->bnext;
+			if(blockx >= 0 && blockx < p_level.blockmap_width
+				&& blocky >= 0 && blocky < p_level.blockmap_height) {
+				p_level.block_links[blocky * p_level.blockmap_width + blockx] = thing->bnext;
 			}
 		}
 	}
@@ -343,8 +345,8 @@ P_UnsetThingPosition(mobj_t *thing) {
 //
 void
 P_SetThingPosition(mobj_t *thing) {
-	subsector_t *ss;
-	sector_t *sec;
+	struct p_subSector *ss;
+	struct p_sector *sec;
 	int blockx;
 	int blocky;
 	mobj_t **link;
@@ -358,25 +360,25 @@ P_SetThingPosition(mobj_t *thing) {
 		sec = ss->sector;
 
 		thing->sprev = NULL;
-		thing->snext = sec->thinglist;
+		thing->snext = sec->thing_list;
 
-		if(sec->thinglist)
-			sec->thinglist->sprev = thing;
+		if(sec->thing_list)
+			sec->thing_list->sprev = thing;
 
-		sec->thinglist = thing;
+		sec->thing_list = thing;
 	}
 
 	// link into blockmap
 	if(!(thing->flags & MF_NOBLOCKMAP)) {
 		// inert things don't need to be in blockmap
-		blockx = (thing->x - bmaporgx) >> MAPBLOCKSHIFT;
-		blocky = (thing->y - bmaporgy) >> MAPBLOCKSHIFT;
+		blockx = (thing->x - p_level.blockmap_origin_x) >> MAPBLOCKSHIFT;
+		blocky = (thing->y - p_level.blockmap_origin_y) >> MAPBLOCKSHIFT;
 
 		if(blockx >= 0
-			&& blockx < bmapwidth
+			&& blockx < p_level.blockmap_width
 			&& blocky >= 0
-			&& blocky < bmapheight) {
-			link         = &blocklinks[blocky * bmapwidth + blockx];
+			&& blocky < p_level.blockmap_height) {
+			link         = &p_level.block_links[blocky * p_level.blockmap_width + blockx];
 			thing->bprev = NULL;
 			thing->bnext = *link;
 			if(*link)
@@ -409,29 +411,29 @@ P_SetThingPosition(mobj_t *thing) {
 boolean
 P_BlockLinesIterator(int x,
 	int y,
-	boolean (*func)(line_t *)) {
+	boolean (*func)(struct p_line *)) {
 	int offset;
 	const short *list;
-	line_t *ld;
+	struct p_line *ld;
 
 	if(x < 0
 		|| y < 0
-		|| x >= bmapwidth
-		|| y >= bmapheight) {
+		|| x >= p_level.blockmap_width
+		|| y >= p_level.blockmap_height) {
 		return true;
 	}
 
-	offset = y * bmapwidth + x;
+	offset = y * p_level.blockmap_width + x;
 
-	offset = SHORT(blockmaplump[offset + 4]);
+	offset = LE_U16(p_level.blockmap_lump[offset + 4]);
 
-	for(list = blockmaplump + offset; SHORT(*list) != -1; list++) {
-		ld = lines + SHORT(*list);
+	for(list = p_level.blockmap_lump + offset; LE_S16(*list) != -1; list++) {
+		ld = p_level.lines + LE_U16(*list);
 
-		if(ld->validcount == validcount)
+		if(ld->valid_count == validcount)
 			continue; // line has already been checked
 
-		ld->validcount = validcount;
+		ld->valid_count = validcount;
 
 		if(!func(ld))
 			return false;
@@ -450,12 +452,12 @@ P_BlockThingsIterator(int x,
 
 	if(x < 0
 		|| y < 0
-		|| x >= bmapwidth
-		|| y >= bmapheight) {
+		|| x >= p_level.blockmap_width
+		|| y >= p_level.blockmap_height) {
 		return true;
 	}
 
-	for(mobj = blocklinks[y * bmapwidth + x];
+	for(mobj = p_level.block_links[y * p_level.blockmap_width + x];
 		mobj;
 		mobj = mobj->bnext) {
 		if(!func(mobj))
@@ -485,7 +487,7 @@ int ptflags;
 // Returns true if earlyout and a solid line hit.
 //
 boolean
-PIT_AddLineIntercepts(line_t *ld) {
+PIT_AddLineIntercepts(struct p_line *ld) {
 	int s1;
 	int s2;
 	fixed_t frac;
@@ -496,8 +498,8 @@ PIT_AddLineIntercepts(line_t *ld) {
 		|| trace.dy > FRACUNIT * 16
 		|| trace.dx < -FRACUNIT * 16
 		|| trace.dy < -FRACUNIT * 16) {
-		s1 = P_PointOnDivlineSide(ld->v1->x, ld->v1->y, &trace);
-		s2 = P_PointOnDivlineSide(ld->v2->x, ld->v2->y, &trace);
+		s1 = P_PointOnDivlineSide(ld->first_vertex->x, ld->first_vertex->y, &trace);
+		s2 = P_PointOnDivlineSide(ld->last_vertex->x, ld->last_vertex->y, &trace);
 	} else {
 		s1 = P_PointOnLineSide(trace.x, trace.y, ld);
 		s2 = P_PointOnLineSide(trace.x + trace.dx, trace.y + trace.dy, ld);
@@ -516,7 +518,7 @@ PIT_AddLineIntercepts(line_t *ld) {
 	// try to early out the check
 	if(earlyout
 		&& frac < FRACUNIT
-		&& !ld->backsector) {
+		&& !ld->back_sector) {
 		return false; // stop checking
 	}
 
@@ -678,10 +680,10 @@ P_PathTraverse(fixed_t x1,
 	validcount++;
 	intercept_p = intercepts;
 
-	if(((x1 - bmaporgx) & (MAPBLOCKSIZE - 1)) == 0)
+	if(((x1 - p_level.blockmap_origin_x) & (MAPBLOCKSIZE - 1)) == 0)
 		x1 += FRACUNIT; // don't side exactly on a line
 
-	if(((y1 - bmaporgy) & (MAPBLOCKSIZE - 1)) == 0)
+	if(((y1 - p_level.blockmap_origin_y) & (MAPBLOCKSIZE - 1)) == 0)
 		y1 += FRACUNIT; // don't side exactly on a line
 
 	trace.x  = x1;
@@ -689,13 +691,13 @@ P_PathTraverse(fixed_t x1,
 	trace.dx = x2 - x1;
 	trace.dy = y2 - y1;
 
-	x1 -= bmaporgx;
-	y1 -= bmaporgy;
+	x1 -= p_level.blockmap_origin_x;
+	y1 -= p_level.blockmap_origin_y;
 	xt1 = x1 >> MAPBLOCKSHIFT;
 	yt1 = y1 >> MAPBLOCKSHIFT;
 
-	x2 -= bmaporgx;
-	y2 -= bmaporgy;
+	x2 -= p_level.blockmap_origin_x;
+	y2 -= p_level.blockmap_origin_y;
 	xt2 = x2 >> MAPBLOCKSHIFT;
 	yt2 = y2 >> MAPBLOCKSHIFT;
 

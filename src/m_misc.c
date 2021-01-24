@@ -74,7 +74,7 @@ M_DrawText(int x,
 			continue;
 		}
 
-		w = SHORT(hu_font[c]->width);
+		w = LE_U16(hu_font[c]->width);
 		if(x + w > SCREENWIDTH)
 			break;
 		if(direct)
@@ -422,14 +422,14 @@ WritePCXfile(char *filename,
 	pcx->bits_per_pixel = 8;    // 256 color
 	pcx->xmin           = 0;
 	pcx->ymin           = 0;
-	pcx->xmax           = SHORT(width - 1);
-	pcx->ymax           = SHORT(height - 1);
-	pcx->hres           = SHORT(width);
-	pcx->vres           = SHORT(height);
+	pcx->xmax           = LE_U16(width - 1);
+	pcx->ymax           = LE_U16(height - 1);
+	pcx->hres           = LE_U16(width);
+	pcx->vres           = LE_U16(height);
 	memset(pcx->palette, 0, sizeof(pcx->palette));
 	pcx->color_planes   = 1; // chunky image
-	pcx->bytes_per_line = SHORT(width);
-	pcx->palette_type   = SHORT(2); // not a grey scale
+	pcx->bytes_per_line = LE_U16(width);
+	pcx->palette_type   = LE_U16(2); // not a grey scale
 	memset(pcx->filler, 0, sizeof(pcx->filler));
 
 	// pack the image

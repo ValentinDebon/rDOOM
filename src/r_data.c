@@ -231,7 +231,7 @@ R_GenerateComposite(int texnum) {
 		i++, patch++) {
 		realpatch = W_LumpForId(patch->patch)->data;
 		x1        = patch->originx;
-		x2        = x1 + SHORT(realpatch->width);
+		x2        = x1 + LE_U16(realpatch->width);
 
 		if(x1 < 0)
 			x = 0;
@@ -246,8 +246,7 @@ R_GenerateComposite(int texnum) {
 			if(collump[x] >= 0)
 				continue;
 
-			patchcol = (column_t *)((byte *)realpatch
-									+ LONG(realpatch->columnofs[x - x1]));
+			patchcol = (column_t *)((uint8_t *)realpatch + LE_U32(realpatch->columnofs[x - x1]));
 			R_DrawColumnInCache(patchcol,
 				block + colofs[x],
 				patch->originy,
@@ -298,7 +297,7 @@ R_GenerateLookup(int texnum) {
 		i++, patch++) {
 		realpatch = W_LumpForId(patch->patch)->data;
 		x1        = patch->originx;
-		x2        = x1 + SHORT(realpatch->width);
+		x2        = x1 + LE_U16(realpatch->width);
 
 		if(x1 < 0)
 			x = 0;
@@ -310,7 +309,7 @@ R_GenerateLookup(int texnum) {
 		for(; x < x2; x++) {
 			patchcount[x]++;
 			collump[x] = patch->patch;
-			colofs[x]  = LONG(realpatch->columnofs[x - x1]) + 3;
+			colofs[x]  = LE_U32(realpatch->columnofs[x - x1]) + 3;
 		}
 	}
 
@@ -401,7 +400,7 @@ R_InitTextures(void) {
 	// Load the patch names from pnames.lmp.
 	name[8]       = 0;
 	names         = W_LumpForName("PNAMES")->data;
-	nummappatches = LONG(*(uint32_t *)names);
+	nummappatches = LE_U32(*(uint32_t *)names);
 	name_p        = names + 4;
 	patchlookup   = alloca(nummappatches * sizeof(*patchlookup));
 
@@ -415,7 +414,7 @@ R_InitTextures(void) {
 	//  TEXTURE1 for shareware, plus TEXTURE2 for commercial.
 	const struct w_lump *texture1_lump = W_LumpForName("TEXTURE1");
 	maptex = maptex1 = texture1_lump->data;
-	numtextures1     = LONG(*maptex);
+	numtextures1     = LE_U32(*maptex);
 	maxoff           = texture1_lump->size;
 	directory        = maptex + 1;
 
@@ -423,7 +422,7 @@ R_InitTextures(void) {
 	if(texture2_id != -1) {
 		const struct w_lump *texture2_lump = W_LumpForId(texture2_id);
 		maptex2      = texture2_lump->data;
-		numtextures2 = LONG(*maptex2);
+		numtextures2 = LE_U32(*maptex2);
 		maxoff2      = texture2_lump->size;
 	} else {
 		maptex2      = NULL;
@@ -465,30 +464,28 @@ R_InitTextures(void) {
 			directory = maptex + 1;
 		}
 
-		offset = LONG(*directory);
+		offset = LE_U32(*directory);
 
 		if(offset > maxoff)
 			I_Error("R_InitTextures: bad texture directory");
 
 		mtexture = (maptexture_t *)((byte *)maptex + offset);
 
-		texture = textures[i] = Z_Malloc(sizeof(texture_t)
-											 + sizeof(texpatch_t) * (SHORT(mtexture->patchcount) - 1),
-			PU_STATIC,
-			0);
+		texture = textures[i] = Z_Malloc(sizeof(texture_t) + sizeof(texpatch_t) * (LE_U16(mtexture->patchcount) - 1),
+			PU_STATIC, 0);
 
-		texture->width      = SHORT(mtexture->width);
-		texture->height     = SHORT(mtexture->height);
-		texture->patchcount = SHORT(mtexture->patchcount);
+		texture->width      = LE_U16(mtexture->width);
+		texture->height     = LE_U16(mtexture->height);
+		texture->patchcount = LE_U16(mtexture->patchcount);
 
 		memcpy(texture->name, mtexture->name, sizeof(texture->name));
 		mpatch = &mtexture->patches[0];
 		patch  = &texture->patches[0];
 
 		for(j = 0; j < texture->patchcount; j++, mpatch++, patch++) {
-			patch->originx = SHORT(mpatch->originx);
-			patch->originy = SHORT(mpatch->originy);
-			patch->patch   = patchlookup[SHORT(mpatch->patch)];
+			patch->originx = LE_S16(mpatch->originx);
+			patch->originy = LE_S16(mpatch->originy);
+			patch->patch   = patchlookup[LE_U16(mpatch->patch)];
 			if(patch->patch == -1) {
 				I_Error("R_InitTextures: Missing patch in texture %s",
 					texture->name);
@@ -560,9 +557,9 @@ R_InitSpriteLumps(void) {
 			printf(".");
 
 		patch              = W_LumpForId(firstspritelump + i)->data;
-		spritewidth[i]     = SHORT(patch->width) << FRACBITS;
-		spriteoffset[i]    = SHORT(patch->leftoffset) << FRACBITS;
-		spritetopoffset[i] = SHORT(patch->topoffset) << FRACBITS;
+		spritewidth[i]     = (fixed_t)LE_U16(patch->width) << FRACBITS;
+		spriteoffset[i]    = (fixed_t)LE_S16(patch->leftoffset) << FRACBITS;
+		spritetopoffset[i] = (fixed_t)LE_S16(patch->topoffset) << FRACBITS;
 	}
 }
 
@@ -593,11 +590,11 @@ R_InitData(void) {
 }
 
 //
-// R_FlatNumForName
+// R_FlatIdForName
 // Retrieval, get a flat number for a flat name.
 //
-int
-R_FlatNumForName(const char *name) {
+lumpId_t
+R_FlatIdForName(const char *name) {
 	const lumpId_t id = W_FindIdForName(name);
 	char namet[9];
 
@@ -635,17 +632,15 @@ R_CheckTextureNumForName(const char *name) {
 // Calls R_CheckTextureNumForName,
 //  aborts with error message.
 //
-int
-R_TextureNumForName(const char *name) {
-	int i;
+lumpId_t
+R_TextureIdForName(const char *name) {
+	const lumpId_t id = R_CheckTextureNumForName(name);
 
-	i = R_CheckTextureNumForName(name);
-
-	if(i == -1) {
-		I_Error("R_TextureNumForName: %s not found",
-			name);
+	if(id == -1) {
+		I_Error("R_TextureIdForName: %.8s not found", name);
 	}
-	return i;
+
+	return id;
 }
 
 //

@@ -35,6 +35,7 @@
 #include "p_tick.h"
 
 #include "d_main.h"
+#include "r_main.h"
 
 #include "wi_stuff.h"
 #include "hu_stuff.h"
@@ -55,6 +56,7 @@
 #include "sounds.h"
 
 // SKY handling - still the wrong place.
+#include "r_draw.h"
 #include "r_data.h"
 #include "r_sky.h"
 
@@ -415,18 +417,18 @@ G_DoLoadLevel(void) {
 	//  a flat. The data is in the WAD only because
 	//  we look for an actual index, instead of simply
 	//  setting one.
-	skyflatnum = R_FlatNumForName(SKYFLATNAME);
+	skyflatnum = R_FlatIdForName(SKYFLATNAME);
 
 	// DOOM determines the sky texture to be used
 	// depending on the current episode, and the game version.
 	if((gamemode == commercial)
 		|| (gamemode == pack_tnt)
 		|| (gamemode == pack_plut)) {
-		skytexture = R_TextureNumForName("SKY3");
+		skytexture = R_TextureIdForName("SKY3");
 		if(gamemap < 12)
-			skytexture = R_TextureNumForName("SKY1");
+			skytexture = R_TextureIdForName("SKY1");
 		else if(gamemap < 21)
-			skytexture = R_TextureNumForName("SKY2");
+			skytexture = R_TextureIdForName("SKY2");
 	}
 
 	levelstarttic = gametic; // for time calculation
@@ -774,7 +776,7 @@ G_CheckSpot(int playernum,
 	mapthing_t *mthing) {
 	fixed_t x;
 	fixed_t y;
-	subsector_t *ss;
+	const struct p_subSector *ss;
 	unsigned an;
 	mobj_t *mo;
 	int i;
@@ -804,7 +806,7 @@ G_CheckSpot(int playernum,
 	ss = R_PointInSubsector(x, y);
 	an = (ANG45 * (mthing->angle / 45)) >> ANGLETOFINESHIFT;
 
-	mo = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], ss->sector->floorheight, MT_TFOG);
+	mo = P_SpawnMobj(x + 20 * finecosine[an], y + 20 * finesine[an], ss->sector->floor_height, MT_TFOG);
 
 	if(players[consoleplayer].viewz != 1)
 		S_StartSound(mo, sfx_telept); // don't start sound on first frame
@@ -1353,24 +1355,24 @@ G_InitNew(skill_t skill,
 
 	// set the sky map for the episode
 	if(gamemode == commercial) {
-		skytexture = R_TextureNumForName("SKY3");
+		skytexture = R_TextureIdForName("SKY3");
 		if(gamemap < 12)
-			skytexture = R_TextureNumForName("SKY1");
+			skytexture = R_TextureIdForName("SKY1");
 		else if(gamemap < 21)
-			skytexture = R_TextureNumForName("SKY2");
+			skytexture = R_TextureIdForName("SKY2");
 	} else
 		switch(episode) {
 		case 1:
-			skytexture = R_TextureNumForName("SKY1");
+			skytexture = R_TextureIdForName("SKY1");
 			break;
 		case 2:
-			skytexture = R_TextureNumForName("SKY2");
+			skytexture = R_TextureIdForName("SKY2");
 			break;
 		case 3:
-			skytexture = R_TextureNumForName("SKY3");
+			skytexture = R_TextureIdForName("SKY3");
 			break;
 		case 4: // Special Edition sky
-			skytexture = R_TextureNumForName("SKY4");
+			skytexture = R_TextureIdForName("SKY4");
 			break;
 		}
 

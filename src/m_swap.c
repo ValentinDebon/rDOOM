@@ -17,28 +17,24 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifdef __GNUG__
-#pragma implementation "m_swap.h"
-#endif
 #include "m_swap.h"
 
-// Not needed with big endian.
-#ifndef __BIG_ENDIAN__
+/* Ironically, the original source code was compiling only when __BIG_ENDIAN__ was not defined,
+I wonder if this was corrected in the Jaguar release. Which, if I recall, had an M68K */
 
-// Swap 16bit, that is, MSB and LSB byte.
-unsigned short
-SwapSHORT(unsigned short x) {
-	// No masking with 0xFF should be necessary.
-	return (x >> 8) | (x << 8);
+/* Not needed with little endian. */
+#ifdef __BIG_ENDIAN__
+
+/* Swap 16bit, that is, MSB and LSB byte. */
+uint16_t
+SwapU16(uint16_t value) {
+	return (value << 8) | (value >> 8);
 }
 
-// Swapping 32bit.
-unsigned long
-SwapLONG(unsigned long x) {
-	return (x >> 24)
-		   | ((x >> 8) & 0xff00)
-		   | ((x << 8) & 0xff0000)
-		   | (x << 24);
+/* Swapping 32bit. */
+uint32_t
+SwapU32(uint32_t value) {
+	return ((uint32_t)SwapU16(value) << 16) | SwapU16(value >> 16);
 }
 
 #endif

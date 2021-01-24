@@ -129,7 +129,7 @@ anim_t *lastanim;
 #define MAXLINEANIMS 64
 
 extern short numlinespecials;
-extern line_t *linespeciallist[MAXLINEANIMS];
+extern const struct p_line *linespeciallist[MAXLINEANIMS];
 
 void
 P_InitPicAnims(void) {
@@ -143,14 +143,14 @@ P_InitPicAnims(void) {
 			if(R_CheckTextureNumForName(animdefs[i].startname) == -1)
 				continue;
 
-			lastanim->picnum  = R_TextureNumForName(animdefs[i].endname);
-			lastanim->basepic = R_TextureNumForName(animdefs[i].startname);
+			lastanim->picnum  = R_TextureIdForName(animdefs[i].endname);
+			lastanim->basepic = R_TextureIdForName(animdefs[i].startname);
 		} else {
 			if(W_FindIdForName(animdefs[i].startname) == -1)
 				continue;
 
-			lastanim->picnum  = R_FlatNumForName(animdefs[i].endname);
-			lastanim->basepic = R_FlatNumForName(animdefs[i].startname);
+			lastanim->picnum  = R_FlatIdForName(animdefs[i].endname);
+			lastanim->basepic = R_FlatIdForName(animdefs[i].startname);
 		}
 
 		lastanim->istexture = animdefs[i].istexture;
@@ -176,11 +176,11 @@ P_InitPicAnims(void) {
 //  given the number of the current sector,
 //  the line number, and the side (0/1) that you want.
 //
-side_t *
+struct p_side *
 getSide(int currentSector,
 	int line,
 	int side) {
-	return &sides[(sectors[currentSector].lines[line])->sidenum[side]];
+	return p_level.sides + (p_level.sectors[currentSector].lines[line])->sides[side];
 }
 
 //
@@ -189,11 +189,11 @@ getSide(int currentSector,
 //  given the number of the current sector,
 //  the line number and the side (0/1) that you want.
 //
-sector_t *
+struct p_sector *
 getSector(int currentSector,
 	int line,
 	int side) {
-	return sides[(sectors[currentSector].lines[line])->sidenum[side]].sector;
+	return p_level.sides[(p_level.sectors[currentSector].lines[line])->sides[side]].sector;
 }
 
 //
@@ -204,7 +204,7 @@ getSector(int currentSector,
 int
 twoSided(int sector,
 	int line) {
-	return (sectors[sector].lines[line])->flags & ML_TWOSIDED;
+	return (p_level.sectors[sector].lines[line])->flags & ML_TWOSIDED;
 }
 
 //
@@ -212,16 +212,16 @@ twoSided(int sector,
 // Return sector_t * of sector next to current.
 // NULL if not two-sided line
 //
-sector_t *
-getNextSector(line_t *line,
-	sector_t *sec) {
+struct p_sector *
+getNextSector(const struct p_line *line,
+	const struct p_sector *sec) {
 	if(!(line->flags & ML_TWOSIDED))
 		return NULL;
 
-	if(line->frontsector == sec)
-		return line->backsector;
+	if(line->front_sector == sec)
+		return line->back_sector;
 
-	return line->frontsector;
+	return line->front_sector;
 }
 
 //
@@ -229,21 +229,21 @@ getNextSector(line_t *line,
 // FIND LOWEST FLOOR HEIGHT IN SURROUNDING SECTORS
 //
 fixed_t
-P_FindLowestFloorSurrounding(sector_t *sec) {
+P_FindLowestFloorSurrounding(const struct p_sector *sec) {
 	int i;
-	line_t *check;
-	sector_t *other;
-	fixed_t floor = sec->floorheight;
+	const struct p_line *check;
+	const struct p_sector *other;
+	fixed_t floor = sec->floor_height;
 
-	for(i = 0; i < sec->linecount; i++) {
+	for(i = 0; i < sec->lines_count; i++) {
 		check = sec->lines[i];
 		other = getNextSector(check, sec);
 
 		if(!other)
 			continue;
 
-		if(other->floorheight < floor)
-			floor = other->floorheight;
+		if(other->floor_height < floor)
+			floor = other->floor_height;
 	}
 	return floor;
 }
@@ -253,21 +253,21 @@ P_FindLowestFloorSurrounding(sector_t *sec) {
 // FIND HIGHEST FLOOR HEIGHT IN SURROUNDING SECTORS
 //
 fixed_t
-P_FindHighestFloorSurrounding(sector_t *sec) {
+P_FindHighestFloorSurrounding(const struct p_sector *sec) {
 	int i;
-	line_t *check;
-	sector_t *other;
+	const struct p_line *check;
+	const struct p_sector *other;
 	fixed_t floor = -500 * FRACUNIT;
 
-	for(i = 0; i < sec->linecount; i++) {
+	for(i = 0; i < sec->lines_count; i++) {
 		check = sec->lines[i];
 		other = getNextSector(check, sec);
 
 		if(!other)
 			continue;
 
-		if(other->floorheight > floor)
-			floor = other->floorheight;
+		if(other->floor_height > floor)
+			floor = other->floor_height;
 	}
 	return floor;
 }
@@ -281,26 +281,26 @@ P_FindHighestFloorSurrounding(sector_t *sec) {
 #define MAX_ADJOINING_SECTORS 20
 
 fixed_t
-P_FindNextHighestFloor(sector_t *sec,
+P_FindNextHighestFloor(const struct p_sector *sec,
 	int currentheight) {
 	int i;
 	int h;
 	int min;
-	line_t *check;
-	sector_t *other;
+	const struct p_line *check;
+	const struct p_sector *other;
 	fixed_t height = currentheight;
 
 	fixed_t heightlist[MAX_ADJOINING_SECTORS];
 
-	for(i = 0, h = 0; i < sec->linecount; i++) {
+	for(i = 0, h = 0; i < sec->lines_count; i++) {
 		check = sec->lines[i];
 		other = getNextSector(check, sec);
 
 		if(!other)
 			continue;
 
-		if(other->floorheight > height)
-			heightlist[h++] = other->floorheight;
+		if(other->floor_height > height)
+			heightlist[h++] = other->floor_height;
 
 		// Check for overflow. Exit.
 		if(h >= MAX_ADJOINING_SECTORS) {
@@ -328,21 +328,21 @@ P_FindNextHighestFloor(sector_t *sec,
 // FIND LOWEST CEILING IN THE SURROUNDING SECTORS
 //
 fixed_t
-P_FindLowestCeilingSurrounding(sector_t *sec) {
+P_FindLowestCeilingSurrounding(const struct p_sector *sec) {
 	int i;
-	line_t *check;
-	sector_t *other;
+	const struct p_line *check;
+	const struct p_sector *other;
 	fixed_t height = MAXINT;
 
-	for(i = 0; i < sec->linecount; i++) {
+	for(i = 0; i < sec->lines_count; i++) {
 		check = sec->lines[i];
 		other = getNextSector(check, sec);
 
 		if(!other)
 			continue;
 
-		if(other->ceilingheight < height)
-			height = other->ceilingheight;
+		if(other->ceiling_height < height)
+			height = other->ceiling_height;
 	}
 	return height;
 }
@@ -351,21 +351,21 @@ P_FindLowestCeilingSurrounding(sector_t *sec) {
 // FIND HIGHEST CEILING IN THE SURROUNDING SECTORS
 //
 fixed_t
-P_FindHighestCeilingSurrounding(sector_t *sec) {
+P_FindHighestCeilingSurrounding(const struct p_sector *sec) {
 	int i;
-	line_t *check;
-	sector_t *other;
+	const struct p_line *check;
+	const struct p_sector *other;
 	fixed_t height = 0;
 
-	for(i = 0; i < sec->linecount; i++) {
+	for(i = 0; i < sec->lines_count; i++) {
 		check = sec->lines[i];
 		other = getNextSector(check, sec);
 
 		if(!other)
 			continue;
 
-		if(other->ceilingheight > height)
-			height = other->ceilingheight;
+		if(other->ceiling_height > height)
+			height = other->ceiling_height;
 	}
 	return height;
 }
@@ -374,13 +374,15 @@ P_FindHighestCeilingSurrounding(sector_t *sec) {
 // RETURN NEXT SECTOR # THAT LINE TAG REFERS TO
 //
 int
-P_FindSectorFromLineTag(line_t *line,
+P_FindSectorFromLineTag(const struct p_line *line,
 	int start) {
 	int i;
 
-	for(i = start + 1; i < numsectors; i++)
-		if(sectors[i].tag == line->tag)
+	for(i = start + 1; i < p_level.sectors_count; i++) {
+		if(p_level.sectors[i].tag == line->sector_tag) {
 			return i;
+		}
+	}
 
 	return -1;
 }
@@ -389,23 +391,23 @@ P_FindSectorFromLineTag(line_t *line,
 // Find minimum light from an adjacent sector
 //
 int
-P_FindMinSurroundingLight(sector_t *sector,
+P_FindMinSurroundingLight(const struct p_sector *sector,
 	int max) {
 	int i;
 	int min;
-	line_t *line;
-	sector_t *check;
+	const struct p_line *line;
+	const struct p_sector *check;
 
 	min = max;
-	for(i = 0; i < sector->linecount; i++) {
+	for(i = 0; i < sector->lines_count; i++) {
 		line  = sector->lines[i];
 		check = getNextSector(line, sector);
 
 		if(!check)
 			continue;
 
-		if(check->lightlevel < min)
-			min = check->lightlevel;
+		if(check->lighting < min)
+			min = check->lighting;
 	}
 	return min;
 }
@@ -425,10 +427,10 @@ void
 P_CrossSpecialLine(int linenum,
 	int side,
 	mobj_t *thing) {
-	line_t *line;
+	struct p_line *line;
 	int ok;
 
-	line = &lines[linenum];
+	line = p_level.lines + linenum;
 
 	//	Triggers that other things can activate
 	if(!thing->player) {
@@ -448,7 +450,7 @@ P_CrossSpecialLine(int linenum,
 		}
 
 		ok = 0;
-		switch(line->special) {
+		switch(line->special_type) {
 		case 39:  // TELEPORT TRIGGER
 		case 97:  // TELEPORT RETRIGGER
 		case 125: // TELEPORT MONSTERONLY TRIGGER
@@ -464,141 +466,141 @@ P_CrossSpecialLine(int linenum,
 	}
 
 	// Note: could use some const's here.
-	switch(line->special) {
+	switch(line->special_type) {
 		// TRIGGERS.
 		// All from here to RETRIGGERS.
 	case 2:
 		// Open Door
-		EV_DoDoor(line, open);
-		line->special = 0;
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_OPEN);
+		line->special_type = 0;
 		break;
 
 	case 3:
 		// Close Door
-		EV_DoDoor(line, close);
-		line->special = 0;
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_CLOSE);
+		line->special_type = 0;
 		break;
 
 	case 4:
 		// Raise Door
-		EV_DoDoor(line, normal);
-		line->special = 0;
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_NORMAL);
+		line->special_type = 0;
 		break;
 
 	case 5:
 		// Raise Floor
 		EV_DoFloor(line, raiseFloor);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 6:
 		// Fast Ceiling Crush & Raise
 		EV_DoCeiling(line, fastCrushAndRaise);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 8:
 		// Build Stairs
 		EV_BuildStairs(line, build8);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 10:
 		// PlatDownWaitUp
 		EV_DoPlat(line, downWaitUpStay, 0);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 12:
 		// Light Turn On - brightest near
 		EV_LightTurnOn(line, 0);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 13:
 		// Light Turn On 255
 		EV_LightTurnOn(line, 255);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 16:
 		// Close Door 30
-		EV_DoDoor(line, close30ThenOpen);
-		line->special = 0;
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_CLOSE_30_THEN_OPEN);
+		line->special_type = 0;
 		break;
 
 	case 17:
 		// Start Light Strobing
 		EV_StartLightStrobing(line);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 19:
 		// Lower Floor
 		EV_DoFloor(line, lowerFloor);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 22:
 		// Raise floor to nearest height and change texture
 		EV_DoPlat(line, raiseToNearestAndChange, 0);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 25:
 		// Ceiling Crush and Raise
 		EV_DoCeiling(line, crushAndRaise);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 30:
 		// Raise floor to shortest texture height
 		//  on either side of lines.
 		EV_DoFloor(line, raiseToTexture);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 35:
 		// Lights Very Dark
 		EV_LightTurnOn(line, 35);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 36:
 		// Lower Floor (TURBO)
 		EV_DoFloor(line, turboLower);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 37:
 		// LowerAndChange
 		EV_DoFloor(line, lowerAndChange);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 38:
 		// Lower Floor To Lowest
 		EV_DoFloor(line, lowerFloorToLowest);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 39:
 		// TELEPORT!
 		EV_Teleport(line, side, thing);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 40:
 		// RaiseCeilingLowerFloor
 		EV_DoCeiling(line, raiseToHighest);
 		EV_DoFloor(line, lowerFloorToLowest);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 44:
 		// Ceiling Crush
 		EV_DoCeiling(line, lowerAndCrush);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 52:
@@ -609,79 +611,79 @@ P_CrossSpecialLine(int linenum,
 	case 53:
 		// Perpetual Platform Raise
 		EV_DoPlat(line, perpetualRaise, 0);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 54:
 		// Platform Stop
 		EV_StopPlat(line);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 56:
 		// Raise Floor Crush
 		EV_DoFloor(line, raiseFloorCrush);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 57:
 		// Ceiling Crush Stop
 		EV_CeilingCrushStop(line);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 58:
 		// Raise Floor 24
 		EV_DoFloor(line, raiseFloor24);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 59:
 		// Raise Floor 24 And Change
 		EV_DoFloor(line, raiseFloor24AndChange);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 104:
 		// Turn lights off in sector(tag)
 		EV_TurnTagLightsOff(line);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 108:
 		// Blazing Door Raise (faster than TURBO!)
-		EV_DoDoor(line, blazeRaise);
-		line->special = 0;
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_BLAZE_RAISE);
+		line->special_type = 0;
 		break;
 
 	case 109:
 		// Blazing Door Open (faster than TURBO!)
-		EV_DoDoor(line, blazeOpen);
-		line->special = 0;
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_BLAZE_OPEN);
+		line->special_type = 0;
 		break;
 
 	case 100:
 		// Build Stairs Turbo 16
 		EV_BuildStairs(line, turbo16);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 110:
 		// Blazing Door Close (faster than TURBO!)
-		EV_DoDoor(line, blazeClose);
-		line->special = 0;
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_BLAZE_CLOSE);
+		line->special_type = 0;
 		break;
 
 	case 119:
 		// Raise floor to nearest surr. floor
 		EV_DoFloor(line, raiseFloorToNearest);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 121:
 		// Blazing PlatDownWaitUpStay
 		EV_DoPlat(line, blazeDWUS, 0);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 124:
@@ -693,20 +695,20 @@ P_CrossSpecialLine(int linenum,
 		// TELEPORT MonsterONLY
 		if(!thing->player) {
 			EV_Teleport(line, side, thing);
-			line->special = 0;
+			line->special_type = 0;
 		}
 		break;
 
 	case 130:
 		// Raise Floor Turbo
 		EV_DoFloor(line, raiseFloorTurbo);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 	case 141:
 		// Silent Ceiling Crush & Raise
 		EV_DoCeiling(line, silentCrushAndRaise);
-		line->special = 0;
+		line->special_type = 0;
 		break;
 
 		// RETRIGGERS.  All from here till end.
@@ -727,12 +729,12 @@ P_CrossSpecialLine(int linenum,
 
 	case 75:
 		// Close Door
-		EV_DoDoor(line, close);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_CLOSE);
 		break;
 
 	case 76:
 		// Close Door 30
-		EV_DoDoor(line, close30ThenOpen);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_CLOSE_30_THEN_OPEN);
 		break;
 
 	case 77:
@@ -772,7 +774,7 @@ P_CrossSpecialLine(int linenum,
 
 	case 86:
 		// Open Door
-		EV_DoDoor(line, open);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_OPEN);
 		break;
 
 	case 87:
@@ -792,7 +794,7 @@ P_CrossSpecialLine(int linenum,
 
 	case 90:
 		// Raise Door
-		EV_DoDoor(line, normal);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_NORMAL);
 		break;
 
 	case 91:
@@ -839,17 +841,17 @@ P_CrossSpecialLine(int linenum,
 
 	case 105:
 		// Blazing Door Raise (faster than TURBO!)
-		EV_DoDoor(line, blazeRaise);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_BLAZE_RAISE);
 		break;
 
 	case 106:
 		// Blazing Door Open (faster than TURBO!)
-		EV_DoDoor(line, blazeOpen);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_BLAZE_OPEN);
 		break;
 
 	case 107:
 		// Blazing Door Close (faster than TURBO!)
-		EV_DoDoor(line, blazeClose);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_BLAZE_CLOSE);
 		break;
 
 	case 120:
@@ -881,13 +883,13 @@ P_CrossSpecialLine(int linenum,
 //
 void
 P_ShootSpecialLine(mobj_t *thing,
-	line_t *line) {
+	struct p_line *line) {
 	int ok;
 
 	//	Impacts that other things can activate.
 	if(!thing->player) {
 		ok = 0;
-		switch(line->special) {
+		switch(line->special_type) {
 		case 46:
 			// OPEN DOOR IMPACT
 			ok = 1;
@@ -897,7 +899,7 @@ P_ShootSpecialLine(mobj_t *thing,
 			return;
 	}
 
-	switch(line->special) {
+	switch(line->special_type) {
 	case 24:
 		// RAISE FLOOR
 		EV_DoFloor(line, raiseFloor);
@@ -906,7 +908,7 @@ P_ShootSpecialLine(mobj_t *thing,
 
 	case 46:
 		// OPEN DOOR
-		EV_DoDoor(line, open);
+		EV_DoDoor(line, VERTICAL_DOOR_TYPE_OPEN);
 		P_ChangeSwitchTexture(line, 1);
 		break;
 
@@ -925,16 +927,16 @@ P_ShootSpecialLine(mobj_t *thing,
 //
 void
 P_PlayerInSpecialSector(player_t *player) {
-	sector_t *sector;
+	struct p_sector *sector;
 
 	sector = player->mo->subsector->sector;
 
 	// Falling, not all the way down yet?
-	if(player->mo->z != sector->floorheight)
+	if(player->mo->z != sector->floor_height)
 		return;
 
 	// Has hitten ground.
-	switch(sector->special) {
+	switch(sector->special_type) {
 	case 5:
 		// HELLSLIME DAMAGE
 		if(!player->powers[pw_ironfeet])
@@ -963,7 +965,7 @@ P_PlayerInSpecialSector(player_t *player) {
 	case 9:
 		// SECRET SECTOR
 		player->secretcount++;
-		sector->special = 0;
+		sector->special_type = 0;
 		break;
 
 	case 11:
@@ -980,7 +982,7 @@ P_PlayerInSpecialSector(player_t *player) {
 	default:
 		I_Error("P_PlayerInSpecialSector: "
 				"unknown special %i",
-			sector->special);
+			sector->special_type);
 		break;
 	};
 }
@@ -997,7 +999,7 @@ P_UpdateSpecials(void) {
 	anim_t *anim;
 	int pic;
 	int i;
-	line_t *line;
+	const struct p_line *line;
 
 	//	LEVEL TIMER
 	if(levelTimer == true) {
@@ -1020,10 +1022,10 @@ P_UpdateSpecials(void) {
 	//	ANIMATE LINE SPECIALS
 	for(i = 0; i < numlinespecials; i++) {
 		line = linespeciallist[i];
-		switch(line->special) {
+		switch(line->special_type) {
 		case 48:
 			// EFFECT FIRSTCOL SCROLL +
-			sides[line->sidenum[0]].textureoffset += FRACUNIT;
+			p_level.sides[line->sides[0]].offset_x += FRACUNIT;
 			break;
 		}
 	}
@@ -1035,15 +1037,13 @@ P_UpdateSpecials(void) {
 			if(!buttonlist[i].btimer) {
 				switch(buttonlist[i].where) {
 				case top:
-					sides[buttonlist[i].line->sidenum[0]].toptexture = buttonlist[i].btexture;
+					p_level.sides[buttonlist[i].line->sides[0]].top_texture = buttonlist[i].btexture;
 					break;
-
 				case middle:
-					sides[buttonlist[i].line->sidenum[0]].midtexture = buttonlist[i].btexture;
+					p_level.sides[buttonlist[i].line->sides[0]].middle_texture = buttonlist[i].btexture;
 					break;
-
 				case bottom:
-					sides[buttonlist[i].line->sidenum[0]].bottomtexture = buttonlist[i].btexture;
+					p_level.sides[buttonlist[i].line->sides[0]].bottom_texture = buttonlist[i].btexture;
 					break;
 				}
 				S_StartSound((mobj_t *)&buttonlist[i].soundorg, sfx_swtchn);
@@ -1056,10 +1056,10 @@ P_UpdateSpecials(void) {
 // Special Stuff that can not be categorized
 //
 int
-EV_DoDonut(line_t *line) {
-	sector_t *s1;
-	sector_t *s2;
-	sector_t *s3;
+EV_DoDonut(const struct p_line *line) {
+	struct p_sector *s1;
+	struct p_sector *s2;
+	const struct p_sector *s3;
 	int secnum;
 	int rtn;
 	int i;
@@ -1068,44 +1068,44 @@ EV_DoDonut(line_t *line) {
 	secnum = -1;
 	rtn    = 0;
 	while((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0) {
-		s1 = &sectors[secnum];
+		s1 = p_level.sectors + secnum;
 
 		// ALREADY MOVING?  IF SO, KEEP GOING...
-		if(s1->specialdata)
+		if(s1->special_data)
 			continue;
 
 		rtn = 1;
 		s2  = getNextSector(s1->lines[0], s1);
-		for(i = 0; i < s2->linecount; i++) {
-			if(((!s2->lines[i]->flags) & ML_TWOSIDED) || (s2->lines[i]->backsector == s1))
+		for(i = 0; i < s2->lines_count; i++) {
+			if(((!s2->lines[i]->flags) & ML_TWOSIDED) || (s2->lines[i]->back_sector == s1))
 				continue;
-			s3 = s2->lines[i]->backsector;
+			s3 = s2->lines[i]->back_sector;
 
 			//	Spawn rising slime
 			floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
 			P_AddThinker(&floor->thinker);
-			s2->specialdata              = floor;
+			s2->special_data             = floor;
 			floor->thinker.function.acp1 = (actionf_p1)T_MoveFloor;
 			floor->type                  = donutRaise;
 			floor->crush                 = false;
 			floor->direction             = 1;
 			floor->sector                = s2;
 			floor->speed                 = FLOORSPEED / 2;
-			floor->texture               = s3->floorpic;
+			floor->texture               = s3->floor;
 			floor->newspecial            = 0;
-			floor->floordestheight       = s3->floorheight;
+			floor->floordestheight       = s3->floor_height;
 
 			//	Spawn lowering donut-hole
 			floor = Z_Malloc(sizeof(*floor), PU_LEVSPEC, 0);
 			P_AddThinker(&floor->thinker);
-			s1->specialdata              = floor;
+			s1->special_data              = floor;
 			floor->thinker.function.acp1 = (actionf_p1)T_MoveFloor;
 			floor->type                  = lowerFloor;
 			floor->crush                 = false;
 			floor->direction             = -1;
 			floor->sector                = s1;
 			floor->speed                 = FLOORSPEED / 2;
-			floor->floordestheight       = s3->floorheight;
+			floor->floordestheight       = s3->floor_height;
 			break;
 		}
 	}
@@ -1122,12 +1122,12 @@ EV_DoDonut(line_t *line) {
 //  that spawn thinkers
 //
 short numlinespecials;
-line_t *linespeciallist[MAXLINEANIMS];
+const struct p_line *linespeciallist[MAXLINEANIMS];
 
 // Parses command line parameters.
 void
 P_SpawnSpecials(void) {
-	sector_t *sector;
+	struct p_sector *sector;
 	int i;
 	int episode;
 
@@ -1153,12 +1153,12 @@ P_SpawnSpecials(void) {
 	}
 
 	//	Init special SECTORs.
-	sector = sectors;
-	for(i = 0; i < numsectors; i++, sector++) {
-		if(!sector->special)
+	sector = p_level.sectors;
+	for(i = 0; i < p_level.sectors_count; i++, sector++) {
+		if(!sector->special_type)
 			continue;
 
-		switch(sector->special) {
+		switch(sector->special_type) {
 		case 1:
 			// FLICKERING LIGHTS
 			P_SpawnLightFlash(sector);
@@ -1177,7 +1177,7 @@ P_SpawnSpecials(void) {
 		case 4:
 			// STROBE FAST/DEATH SLIME
 			P_SpawnStrobeFlash(sector, FASTDARK, 0);
-			sector->special = 4;
+			sector->special_type = 4;
 			break;
 
 		case 8:
@@ -1217,11 +1217,11 @@ P_SpawnSpecials(void) {
 
 	//	Init line EFFECTs
 	numlinespecials = 0;
-	for(i = 0; i < numlines; i++) {
-		switch(lines[i].special) {
+	for(i = 0; i < p_level.lines_count; i++) {
+		switch(p_level.lines[i].special_type) {
 		case 48:
 			// EFFECT FIRSTCOL SCROLL+
-			linespeciallist[numlinespecials] = &lines[i];
+			linespeciallist[numlinespecials] = p_level.lines + i;
 			numlinespecials++;
 			break;
 		}

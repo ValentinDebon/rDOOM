@@ -135,7 +135,7 @@ R_AddPointToBox(int x,
 int
 R_PointOnSide(fixed_t x,
 	fixed_t y,
-	node_t *node) {
+	const struct p_node *node) {
 	fixed_t dx;
 	fixed_t dy;
 	fixed_t left;
@@ -180,7 +180,7 @@ R_PointOnSide(fixed_t x,
 int
 R_PointOnSegSide(fixed_t x,
 	fixed_t y,
-	seg_t *line) {
+	const struct p_segment *line) {
 	fixed_t lx;
 	fixed_t ly;
 	fixed_t ldx;
@@ -190,11 +190,11 @@ R_PointOnSegSide(fixed_t x,
 	fixed_t left;
 	fixed_t right;
 
-	lx = line->v1->x;
-	ly = line->v1->y;
+	lx = line->first_vertex->x;
+	ly = line->first_vertex->y;
 
-	ldx = line->v2->x - lx;
-	ldy = line->v2->y - ly;
+	ldx = line->last_vertex->x - lx;
+	ldy = line->last_vertex->y - ly;
 
 	if(!ldx) {
 		if(x <= lx)
@@ -202,6 +202,7 @@ R_PointOnSegSide(fixed_t x,
 
 		return ldy < 0;
 	}
+
 	if(!ldy) {
 		if(y <= ly)
 			return ldx < 0;
@@ -228,6 +229,7 @@ R_PointOnSegSide(fixed_t x,
 		// front side
 		return 0;
 	}
+
 	// back side
 	return 1;
 }
@@ -682,26 +684,26 @@ R_Init(void) {
 //
 // R_PointInSubsector
 //
-subsector_t *
+struct p_subSector *
 R_PointInSubsector(fixed_t x,
 	fixed_t y) {
-	node_t *node;
+	const struct p_node *node;
 	int side;
 	int nodenum;
 
 	// single subsector is a special case
-	if(!numnodes)
-		return subsectors;
+	if(!p_level.nodes_count)
+		return p_level.sub_sectors;
 
-	nodenum = numnodes - 1;
+	nodenum = p_level.nodes_count - 1;
 
 	while(!(nodenum & NF_SUBSECTOR)) {
-		node    = &nodes[nodenum];
+		node    = p_level.nodes + nodenum;
 		side    = R_PointOnSide(x, y, node);
 		nodenum = node->children[side];
 	}
 
-	return &subsectors[nodenum & ~NF_SUBSECTOR];
+	return p_level.sub_sectors + (nodenum & ~NF_SUBSECTOR);
 }
 
 //
@@ -744,6 +746,8 @@ R_SetupFrame(player_t *player) {
 //
 void
 R_RenderPlayerView(player_t *player) {
+	puts("R_RenderPlayerView");
+
 	R_SetupFrame(player);
 
 	// Clear buffers.
@@ -756,7 +760,7 @@ R_RenderPlayerView(player_t *player) {
 	NetUpdate();
 
 	// The head node is the last node output.
-	R_RenderBSPNode(numnodes - 1);
+	R_RenderBSPNode(p_level.nodes_count - 1);
 
 	// Check for new console commands.
 	NetUpdate();

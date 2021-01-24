@@ -33,7 +33,7 @@
 // TELEPORTATION
 //
 int
-EV_Teleport(line_t *line,
+EV_Teleport(struct p_line *line,
 	int side,
 	mobj_t *thing) {
 	int i;
@@ -42,7 +42,7 @@ EV_Teleport(line_t *line,
 	mobj_t *fog;
 	unsigned an;
 	thinker_t *thinker;
-	sector_t *sector;
+	const struct p_sector *sector;
 	fixed_t oldx;
 	fixed_t oldy;
 	fixed_t oldz;
@@ -56,9 +56,9 @@ EV_Teleport(line_t *line,
 	if(side == 1)
 		return 0;
 
-	tag = line->tag;
-	for(i = 0; i < numsectors; i++) {
-		if(sectors[i].tag == tag) {
+	tag = line->sector_tag;
+	for(i = 0; i < p_level.sectors_count; i++) {
+		if(p_level.sectors[i].tag == tag) {
 			thinker = thinkercap.next;
 			for(thinker = thinkercap.next;
 				thinker != &thinkercap;
@@ -75,7 +75,7 @@ EV_Teleport(line_t *line,
 
 				sector = m->subsector->sector;
 				// wrong sector
-				if(sector - sectors != i)
+				if(sector - p_level.sectors != i)
 					continue;
 
 				oldx = thing->x;

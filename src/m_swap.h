@@ -12,28 +12,44 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the DOOM Source Code License
 // for more details.
 //
+// DESCRIPTION:
+//	Endianess handling, swapping 16bit and 32bit.
 //
 //-----------------------------------------------------------------------------
 
 #ifndef __M_SWAP__
 #define __M_SWAP__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
+#include <stdint.h>
 
-// Endianess handling.
-// WAD files are stored little endian.
-#ifdef __BIG_ENDIAN__
-short
-SwapSHORT(short);
-long
-SwapLONG(long);
-#define SHORT(x) ((short)SwapSHORT((unsigned short)(x)))
-#define LONG(x) ((long)SwapLONG((unsigned long)(x)))
+/* Endianess handling.
+ * WAD files are stored little endian.
+ */
+
+#if defined(__LITTLE_ENDIAN__)
+
+#define LE_U16(x) ((uint16_t)(x))
+#define LE_S16(x) ((int16_t)(x))
+#define LE_U32(x) ((uint32_t)(x))
+#define LE_S32(x) ((int32_t)(x))
+
+#elif defined(__BIG_ENDIAN__)
+
+uint16_t
+SwapU16(uint16_t value);
+
+uint32_t
+SwapU32(uint32_t value);
+
+#define LE_U16(x) (SwapU16(x))
+#define LE_S16(x) ((int16_t)SwapU16(x))
+#define LE_U32(x) (SwapU32(x))
+#define LE_S32(x) ((int32_t)SwapU32(x))
+
 #else
-#define SHORT(x) (x)
-#define LONG(x) (x)
+
+#error "Unsupported/undefined byte order"
+
 #endif
 
 #endif

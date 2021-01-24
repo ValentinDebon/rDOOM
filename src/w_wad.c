@@ -58,9 +58,9 @@ W_InitFile(const char *filename, struct i_fileMap *filemap) {
 		}
 
 		/* Get count of added lumps and info table */
-		const size_t count = LONG(wadinfo->lumps_count);
+		const size_t count = LE_U32(wadinfo->lumps_count);
 		const struct w_lumpInfo *lumpinfo = (const struct w_lumpInfo *)
-			((const uint8_t *)filemap->address + LONG(wadinfo->info_table_offset));
+			((const uint8_t *)filemap->address + LE_U32(wadinfo->info_table_offset));
 
 		/* Reserve memory for new lumps, and get array bounds */
 		W_ReserveLumps(count);

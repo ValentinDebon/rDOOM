@@ -1157,7 +1157,7 @@ M_StringWidth(char *string) {
 		if(c < 0 || c >= HU_FONTSIZE)
 			w += 4;
 		else
-			w += SHORT(hu_font[c]->width);
+			w += LE_U16(hu_font[c]->width);
 	}
 
 	return w;
@@ -1170,7 +1170,7 @@ int
 M_StringHeight(char *string) {
 	int i;
 	int h;
-	int height = SHORT(hu_font[0]->height);
+	int height = LE_U16(hu_font[0]->height);
 
 	h = height;
 	for(i = 0; i < strlen(string); i++)
@@ -1213,7 +1213,7 @@ M_WriteText(int x,
 			continue;
 		}
 
-		w = SHORT(hu_font[c]->width);
+		w = LE_U16(hu_font[c]->width);
 		if(cx + w > SCREENWIDTH)
 			break;
 		V_DrawPatchDirect(cx, cy, 0, hu_font[c]);
@@ -1592,7 +1592,7 @@ M_Drawer(void) {
 
 			x = 160 - M_StringWidth(string) / 2;
 			M_WriteText(x, y, string);
-			y += SHORT(hu_font[0]->height);
+			y += LE_U16(hu_font[0]->height);
 		}
 		return;
 	}

@@ -46,6 +46,7 @@ OBJECTS= \
 	$(BUILD)/p_floor.o \
 	$(BUILD)/p_inter.o \
 	$(BUILD)/p_lights.o \
+	$(BUILD)/p_local.o \
 	$(BUILD)/p_map.o \
 	$(BUILD)/p_maputl.o \
 	$(BUILD)/p_mobj.o \

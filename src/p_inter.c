@@ -33,6 +33,8 @@
 
 #include "s_sound.h"
 
+#include "r_main.h"
+
 #ifdef __GNUG__
 #pragma implementation "p_inter.h"
 #endif
@@ -750,7 +752,7 @@ P_DamageMobj(mobj_t *target,
 	// player specific
 	if(player) {
 		// end of game hell hack
-		if(target->subsector->sector->special == 11
+		if(target->subsector->sector->special_type == 11
 			&& damage >= target->health) {
 			damage = target->health - 1;
 		}

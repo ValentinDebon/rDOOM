@@ -48,13 +48,14 @@ enum {
 	ML_BLOCKMAP  // LUT, motion clipping, walls/grid element
 };
 
+/*
 // A single Vertex.
 typedef struct
 {
 	short x;
 	short y;
 } mapvertex_t;
-
+*/
 // A SideDef, defining the visual appearance of a wall,
 // by setting textures and offsets.
 typedef struct

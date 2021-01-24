@@ -18,9 +18,7 @@
 #ifndef __P_SETUP__
 #define __P_SETUP__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
+#include "doomdef.h"
 
 // NOT called by W_Ticker. Fixme.
 void

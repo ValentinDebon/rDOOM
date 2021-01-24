@@ -34,6 +34,7 @@
 // State.
 #include "doomstat.h"
 #include "r_state.h"
+#include "r_main.h"
 
 // Data.
 #include "sounds.h"
@@ -94,23 +95,23 @@ A_Fall(mobj_t *actor);
 mobj_t *soundtarget;
 
 void
-P_RecursiveSound(sector_t *sec,
+P_RecursiveSound(struct p_sector *sec,
 	int soundblocks) {
 	int i;
-	line_t *check;
-	sector_t *other;
+	const struct p_line *check;
+	struct p_sector *other;
 
 	// wake up all monsters in this sector
-	if(sec->validcount == validcount
-		&& sec->soundtraversed <= soundblocks + 1) {
+	if(sec->valid_count == validcount
+		&& sec->sound_traversed <= soundblocks + 1) {
 		return; // already flooded
 	}
 
-	sec->validcount     = validcount;
-	sec->soundtraversed = soundblocks + 1;
-	sec->soundtarget    = soundtarget;
+	sec->valid_count    = validcount;
+	sec->sound_traversed = soundblocks + 1;
+	sec->sound_target    = soundtarget;
 
-	for(i = 0; i < sec->linecount; i++) {
+	for(i = 0; i < sec->lines_count; i++) {
 		check = sec->lines[i];
 		if(!(check->flags & ML_TWOSIDED))
 			continue;
@@ -120,10 +121,10 @@ P_RecursiveSound(sector_t *sec,
 		if(openrange <= 0)
 			continue; // closed door
 
-		if(sides[check->sidenum[0]].sector == sec)
-			other = sides[check->sidenum[1]].sector;
+		if(p_level.sides[check->sides[0]].sector == sec)
+			other = p_level.sides[check->sides[1]].sector;
 		else
-			other = sides[check->sidenum[0]].sector;
+			other = p_level.sides[check->sides[0]].sector;
 
 		if(check->flags & ML_SOUNDBLOCK) {
 			if(!soundblocks)
@@ -238,7 +239,7 @@ fixed_t yspeed[8] = { 0, 47000, FRACUNIT, 47000, 0, -47000, -FRACUNIT, -47000 };
 
 #define MAXSPECIALCROSS 8
 
-extern line_t *spechit[MAXSPECIALCROSS];
+extern struct p_line *spechit[MAXSPECIALCROSS];
 extern int numspechit;
 
 boolean
@@ -246,7 +247,7 @@ P_Move(mobj_t *actor) {
 	fixed_t tryx;
 	fixed_t tryy;
 
-	line_t *ld;
+	struct p_line *ld;
 
 	// warning: 'catch', 'throw', and 'try'
 	// are all C++ reserved words
@@ -446,7 +447,7 @@ P_LookForPlayers(mobj_t *actor,
 	int c;
 	int stop;
 	player_t *player;
-	sector_t *sector;
+	const struct p_sector *sector;
 	angle_t an;
 	fixed_t dist;
 
@@ -505,7 +506,7 @@ void
 A_KeenDie(mobj_t *mo) {
 	thinker_t *th;
 	mobj_t *mo2;
-	line_t junk;
+	struct p_line junk;
 
 	A_Fall(mo);
 
@@ -524,8 +525,8 @@ A_KeenDie(mobj_t *mo) {
 		}
 	}
 
-	junk.tag = 666;
-	EV_DoDoor(&junk, open);
+	junk.sector_tag = 666;
+	EV_DoDoor(&junk, VERTICAL_DOOR_TYPE_OPEN);
 }
 
 //
@@ -541,7 +542,7 @@ A_Look(mobj_t *actor) {
 	mobj_t *targ;
 
 	actor->threshold = 0; // any shot will wake up
-	targ             = actor->subsector->sector->soundtarget;
+	targ             = actor->subsector->sector->sound_target;
 
 	if(targ
 		&& (targ->flags & MF_SHOOTABLE)) {
@@ -1071,10 +1072,10 @@ A_VileChase(mobj_t *actor) {
 		viletryx = actor->x + actor->info->speed * xspeed[actor->movedir];
 		viletryy = actor->y + actor->info->speed * yspeed[actor->movedir];
 
-		xl = (viletryx - bmaporgx - MAXRADIUS * 2) >> MAPBLOCKSHIFT;
-		xh = (viletryx - bmaporgx + MAXRADIUS * 2) >> MAPBLOCKSHIFT;
-		yl = (viletryy - bmaporgy - MAXRADIUS * 2) >> MAPBLOCKSHIFT;
-		yh = (viletryy - bmaporgy + MAXRADIUS * 2) >> MAPBLOCKSHIFT;
+		xl = (viletryx - p_level.blockmap_origin_x - MAXRADIUS * 2) >> MAPBLOCKSHIFT;
+		xh = (viletryx - p_level.blockmap_origin_x + MAXRADIUS * 2) >> MAPBLOCKSHIFT;
+		yl = (viletryy - p_level.blockmap_origin_y - MAXRADIUS * 2) >> MAPBLOCKSHIFT;
+		yh = (viletryy - p_level.blockmap_origin_y + MAXRADIUS * 2) >> MAPBLOCKSHIFT;
 
 		vileobj = actor;
 		for(bx = xl; bx <= xh; bx++) {
@@ -1461,7 +1462,7 @@ void
 A_BossDeath(mobj_t *mo) {
 	thinker_t *th;
 	mobj_t *mo2;
-	line_t junk;
+	struct p_line junk;
 	int i;
 
 	if(gamemode == commercial) {
@@ -1550,13 +1551,13 @@ A_BossDeath(mobj_t *mo) {
 	if(gamemode == commercial) {
 		if(gamemap == 7) {
 			if(mo->type == MT_FATSO) {
-				junk.tag = 666;
+				junk.sector_tag = 666;
 				EV_DoFloor(&junk, lowerFloorToLowest);
 				return;
 			}
 
 			if(mo->type == MT_BABY) {
-				junk.tag = 667;
+				junk.sector_tag = 667;
 				EV_DoFloor(&junk, raiseToTexture);
 				return;
 			}
@@ -1564,7 +1565,7 @@ A_BossDeath(mobj_t *mo) {
 	} else {
 		switch(gameepisode) {
 		case 1:
-			junk.tag = 666;
+			junk.sector_tag = 666;
 			EV_DoFloor(&junk, lowerFloorToLowest);
 			return;
 			break;
@@ -1572,13 +1573,13 @@ A_BossDeath(mobj_t *mo) {
 		case 4:
 			switch(gamemap) {
 			case 6:
-				junk.tag = 666;
-				EV_DoDoor(&junk, blazeOpen);
+				junk.sector_tag = 666;
+				EV_DoDoor(&junk, VERTICAL_DOOR_TYPE_BLAZE_OPEN);
 				return;
 				break;
 
 			case 8:
-				junk.tag = 666;
+				junk.sector_tag = 666;
 				EV_DoFloor(&junk, lowerFloorToLowest);
 				return;
 				break;

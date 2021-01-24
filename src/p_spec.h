@@ -45,12 +45,12 @@ P_UpdateSpecials(void);
 // when needed
 boolean
 P_UseSpecialLine(mobj_t *thing,
-	line_t *line,
+	struct p_line *line,
 	int side);
 
 void
 P_ShootSpecialLine(mobj_t *thing,
-	line_t *line);
+	struct p_line *line);
 
 void
 P_CrossSpecialLine(int linenum,
@@ -64,47 +64,47 @@ int
 twoSided(int sector,
 	int line);
 
-sector_t *
+struct p_sector *
 getSector(int currentSector,
 	int line,
 	int side);
 
-side_t *
+struct p_side *
 getSide(int currentSector,
 	int line,
 	int side);
 
 fixed_t
-P_FindLowestFloorSurrounding(sector_t *sec);
+P_FindLowestFloorSurrounding(const struct p_sector *sec);
 fixed_t
-P_FindHighestFloorSurrounding(sector_t *sec);
+P_FindHighestFloorSurrounding(const struct p_sector *sec);
 
 fixed_t
-P_FindNextHighestFloor(sector_t *sec,
+P_FindNextHighestFloor(const struct p_sector *sec,
 	int currentheight);
 
 fixed_t
-P_FindLowestCeilingSurrounding(sector_t *sec);
+P_FindLowestCeilingSurrounding(const struct p_sector *sec);
 fixed_t
-P_FindHighestCeilingSurrounding(sector_t *sec);
+P_FindHighestCeilingSurrounding(const struct p_sector *sec);
 
 int
-P_FindSectorFromLineTag(line_t *line,
+P_FindSectorFromLineTag(const struct p_line *line,
 	int start);
 
 int
-P_FindMinSurroundingLight(sector_t *sector,
+P_FindMinSurroundingLight(const struct p_sector *sector,
 	int max);
 
-sector_t *
-getNextSector(line_t *line,
-	sector_t *sec);
+struct p_sector *
+getNextSector(const struct p_line *line,
+	const struct p_sector *sec);
 
 //
 // SPECIAL
 //
 int
-EV_DoDonut(line_t *line);
+EV_DoDonut(const struct p_line *line);
 
 //
 // P_LIGHTS
@@ -112,7 +112,7 @@ EV_DoDonut(line_t *line);
 typedef struct
 {
 	thinker_t thinker;
-	sector_t *sector;
+	struct p_sector *sector;
 	int count;
 	int maxlight;
 	int minlight;
@@ -122,7 +122,7 @@ typedef struct
 typedef struct
 {
 	thinker_t thinker;
-	sector_t *sector;
+	struct p_sector *sector;
 	int count;
 	int maxlight;
 	int minlight;
@@ -134,7 +134,7 @@ typedef struct
 typedef struct
 {
 	thinker_t thinker;
-	sector_t *sector;
+	struct p_sector *sector;
 	int count;
 	int minlight;
 	int maxlight;
@@ -146,7 +146,7 @@ typedef struct
 typedef struct
 {
 	thinker_t thinker;
-	sector_t *sector;
+	struct p_sector *sector;
 	int minlight;
 	int maxlight;
 	int direction;
@@ -159,32 +159,32 @@ typedef struct
 #define SLOWDARK 35
 
 void
-P_SpawnFireFlicker(sector_t *sector);
+P_SpawnFireFlicker(struct p_sector *sector);
 void
 T_LightFlash(lightflash_t *flash);
 void
-P_SpawnLightFlash(sector_t *sector);
+P_SpawnLightFlash(struct p_sector *sector);
 void
 T_StrobeFlash(strobe_t *flash);
 
 void
-P_SpawnStrobeFlash(sector_t *sector,
+P_SpawnStrobeFlash(struct p_sector *sector,
 	int fastOrSlow,
 	int inSync);
 
 void
-EV_StartLightStrobing(line_t *line);
+EV_StartLightStrobing(const struct p_line *line);
 void
-EV_TurnTagLightsOff(line_t *line);
+EV_TurnTagLightsOff(const struct p_line *line);
 
 void
-EV_LightTurnOn(line_t *line,
+EV_LightTurnOn(const struct p_line *line,
 	int bright);
 
 void
 T_Glow(glow_t *g);
 void
-P_SpawnGlowingLight(sector_t *sector);
+P_SpawnGlowingLight(struct p_sector *sector);
 
 //
 // P_SWITCH
@@ -206,7 +206,7 @@ typedef enum {
 
 typedef struct
 {
-	line_t *line;
+	const struct p_line *line;
 	bwhere_e where;
 	int btexture;
 	int btimer;
@@ -226,7 +226,7 @@ typedef struct
 extern button_t buttonlist[MAXBUTTONS];
 
 void
-P_ChangeSwitchTexture(line_t *line,
+P_ChangeSwitchTexture(struct p_line *line,
 	int useAgain);
 
 void
@@ -255,7 +255,7 @@ typedef enum {
 typedef struct
 {
 	thinker_t thinker;
-	sector_t *sector;
+	struct p_sector *sector;
 	fixed_t speed;
 	fixed_t low;
 	fixed_t high;
@@ -279,7 +279,7 @@ void
 T_PlatRaise(plat_t *plat);
 
 int
-EV_DoPlat(line_t *line,
+EV_DoPlat(const struct p_line *line,
 	plattype_e type,
 	int amount);
 
@@ -288,13 +288,14 @@ P_AddActivePlat(plat_t *plat);
 void
 P_RemoveActivePlat(plat_t *plat);
 void
-EV_StopPlat(line_t *line);
+EV_StopPlat(const struct p_line *line);
 void
 P_ActivateInStasis(int tag);
 
 //
 // P_DOORS
 //
+/*
 typedef enum {
 	normal,
 	close30ThenOpen,
@@ -306,12 +307,24 @@ typedef enum {
 	blazeClose
 
 } vldoor_e;
+*/
 
+enum p_verticalDoorType {
+	VERTICAL_DOOR_TYPE_NORMAL,
+	VERTICAL_DOOR_TYPE_CLOSE_30_THEN_OPEN,
+	VERTICAL_DOOR_TYPE_CLOSE,
+	VERTICAL_DOOR_TYPE_OPEN,
+	VERTICAL_DOOR_TYPE_RAISE_IN_5_MINS,
+	VERTICAL_DOOR_TYPE_BLAZE_RAISE,
+	VERTICAL_DOOR_TYPE_BLAZE_OPEN,
+	VERTICAL_DOOR_TYPE_BLAZE_CLOSE,
+};
+ 
 typedef struct
 {
 	thinker_t thinker;
-	vldoor_e type;
-	sector_t *sector;
+	enum p_verticalDoorType type;
+	struct p_sector *sector;
 	fixed_t topheight;
 	fixed_t speed;
 
@@ -330,25 +343,25 @@ typedef struct
 #define VDOORWAIT 150
 
 void
-EV_VerticalDoor(line_t *line,
+EV_VerticalDoor(struct p_line *line,
 	mobj_t *thing);
 
 int
-EV_DoDoor(line_t *line,
-	vldoor_e type);
+EV_DoDoor(const struct p_line *line,
+	enum p_verticalDoorType type);
 
 int
-EV_DoLockedDoor(line_t *line,
-	vldoor_e type,
+EV_DoLockedDoor(const struct p_line *line,
+	enum p_verticalDoorType type,
 	mobj_t *thing);
 
 void
 T_VerticalDoor(vldoor_t *door);
 void
-P_SpawnDoorCloseIn30(sector_t *sec);
+P_SpawnDoorCloseIn30(struct p_sector *sec);
 
 void
-P_SpawnDoorRaiseIn5Mins(sector_t *sec,
+P_SpawnDoorRaiseIn5Mins(struct p_sector *sec,
 	int secnum);
 
 #if 0 // UNUSED
@@ -450,7 +463,7 @@ typedef struct
 {
 	thinker_t thinker;
 	ceiling_e type;
-	sector_t *sector;
+	struct p_sector *sector;
 	fixed_t bottomheight;
 	fixed_t topheight;
 	fixed_t speed;
@@ -472,7 +485,7 @@ typedef struct
 extern ceiling_t *activeceilings[MAXCEILINGS];
 
 int
-EV_DoCeiling(line_t *line,
+EV_DoCeiling(const struct p_line *line,
 	ceiling_e type);
 
 void
@@ -482,9 +495,9 @@ P_AddActiveCeiling(ceiling_t *c);
 void
 P_RemoveActiveCeiling(ceiling_t *c);
 int
-EV_CeilingCrushStop(line_t *line);
+EV_CeilingCrushStop(const struct p_line *line);
 void
-P_ActivateInStasisCeiling(line_t *line);
+P_ActivateInStasisCeiling(const struct p_line *line);
 
 //
 // P_FLOOR
@@ -534,7 +547,7 @@ typedef struct
 	thinker_t thinker;
 	floor_e type;
 	boolean crush;
-	sector_t *sector;
+	struct p_sector *sector;
 	int direction;
 	int newspecial;
 	short texture;
@@ -553,7 +566,7 @@ typedef enum {
 } result_e;
 
 result_e
-T_MovePlane(sector_t *sector,
+T_MovePlane(struct p_sector *sector,
 	fixed_t speed,
 	fixed_t dest,
 	boolean crush,
@@ -561,11 +574,11 @@ T_MovePlane(sector_t *sector,
 	int direction);
 
 int
-EV_BuildStairs(line_t *line,
+EV_BuildStairs(const struct p_line *line,
 	stair_e type);
 
 int
-EV_DoFloor(line_t *line,
+EV_DoFloor(const struct p_line *line,
 	floor_e floortype);
 
 void
@@ -575,7 +588,7 @@ T_MoveFloor(floormove_t *floor);
 // P_TELEPT
 //
 int
-EV_Teleport(line_t *line,
+EV_Teleport(struct p_line *line,
 	int side,
 	mobj_t *thing);
 

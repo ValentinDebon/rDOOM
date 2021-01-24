@@ -29,6 +29,8 @@
 
 #include "s_sound.h"
 
+#include "r_main.h"
+
 // State.
 #include "doomstat.h"
 #include "r_state.h"
@@ -51,13 +53,13 @@ fixed_t tmdropoffz;
 
 // keep track of the line that lowers the ceiling,
 // so missiles don't explode against sky hack walls
-line_t *ceilingline;
+const struct p_line *ceilingline;
 
 // keep track of special lines as they are hit,
 // but don't process them until the move is proven valid
 #define MAXSPECIALCROSS 8
 
-line_t *spechit[MAXSPECIALCROSS];
+const struct p_line *spechit[MAXSPECIALCROSS];
 int numspechit;
 
 //
@@ -109,7 +111,7 @@ P_TeleportMove(mobj_t *thing,
 	int bx;
 	int by;
 
-	subsector_t *newsubsec;
+	const struct p_subSector *newsubsec;
 
 	// kill anything occupying the position
 	tmthing = thing;
@@ -130,17 +132,17 @@ P_TeleportMove(mobj_t *thing,
 	// that contains the point.
 	// Any contacted lines the step closer together
 	// will adjust them.
-	tmfloorz = tmdropoffz = newsubsec->sector->floorheight;
-	tmceilingz            = newsubsec->sector->ceilingheight;
+	tmfloorz = tmdropoffz = newsubsec->sector->floor_height;
+	tmceilingz            = newsubsec->sector->ceiling_height;
 
 	validcount++;
 	numspechit = 0;
 
 	// stomp on any things contacted
-	xl = (tmbbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
-	xh = (tmbbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
-	yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
-	yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
+	xl = (tmbbox[BOXLEFT] - p_level.blockmap_origin_x - MAXRADIUS) >> MAPBLOCKSHIFT;
+	xh = (tmbbox[BOXRIGHT] - p_level.blockmap_origin_x + MAXRADIUS) >> MAPBLOCKSHIFT;
+	yl = (tmbbox[BOXBOTTOM] - p_level.blockmap_origin_y - MAXRADIUS) >> MAPBLOCKSHIFT;
+	yh = (tmbbox[BOXTOP] - p_level.blockmap_origin_y + MAXRADIUS) >> MAPBLOCKSHIFT;
 
 	for(bx = xl; bx <= xh; bx++)
 		for(by = yl; by <= yh; by++)
@@ -170,11 +172,11 @@ P_TeleportMove(mobj_t *thing,
 // Adjusts tmfloorz and tmceilingz as lines are contacted
 //
 boolean
-PIT_CheckLine(line_t *ld) {
-	if(tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
-		|| tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
-		|| tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM]
-		|| tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+PIT_CheckLine(struct p_line *ld) {
+	if(tmbbox[BOXRIGHT] <= ld->bounding_boxes[BOXLEFT]
+		|| tmbbox[BOXLEFT] >= ld->bounding_boxes[BOXRIGHT]
+		|| tmbbox[BOXTOP] <= ld->bounding_boxes[BOXBOTTOM]
+		|| tmbbox[BOXBOTTOM] >= ld->bounding_boxes[BOXTOP])
 		return true;
 
 	if(P_BoxOnLineSide(tmbbox, ld) != -1)
@@ -191,7 +193,7 @@ PIT_CheckLine(line_t *ld) {
 	// so two special lines that are only 8 pixels apart
 	// could be crossed in either order.
 
-	if(!ld->backsector)
+	if(!ld->back_sector)
 		return false; // one sided line
 
 	if(!(tmthing->flags & MF_MISSILE)) {
@@ -218,7 +220,7 @@ PIT_CheckLine(line_t *ld) {
 		tmdropoffz = lowfloor;
 
 	// if contacted a special line, add it to the list
-	if(ld->special) {
+	if(ld->special_type) {
 		spechit[numspechit] = ld;
 		numspechit++;
 	}
@@ -348,7 +350,7 @@ P_CheckPosition(mobj_t *thing,
 	int yh;
 	int bx;
 	int by;
-	subsector_t *newsubsec;
+	const struct p_subSector *newsubsec;
 
 	tmthing = thing;
 	tmflags = thing->flags;
@@ -368,8 +370,8 @@ P_CheckPosition(mobj_t *thing,
 	// that contains the point.
 	// Any contacted lines the step closer together
 	// will adjust them.
-	tmfloorz = tmdropoffz = newsubsec->sector->floorheight;
-	tmceilingz            = newsubsec->sector->ceilingheight;
+	tmfloorz = tmdropoffz = newsubsec->sector->floor_height;
+	tmceilingz            = newsubsec->sector->ceiling_height;
 
 	validcount++;
 	numspechit = 0;
@@ -382,10 +384,10 @@ P_CheckPosition(mobj_t *thing,
 	// because mobj_ts are grouped into mapblocks
 	// based on their origin point, and can overlap
 	// into adjacent blocks by up to MAXRADIUS units.
-	xl = (tmbbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
-	xh = (tmbbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
-	yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
-	yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
+	xl = (tmbbox[BOXLEFT] - p_level.blockmap_origin_x - MAXRADIUS) >> MAPBLOCKSHIFT;
+	xh = (tmbbox[BOXRIGHT] - p_level.blockmap_origin_x + MAXRADIUS) >> MAPBLOCKSHIFT;
+	yl = (tmbbox[BOXBOTTOM] - p_level.blockmap_origin_y - MAXRADIUS) >> MAPBLOCKSHIFT;
+	yh = (tmbbox[BOXTOP] - p_level.blockmap_origin_y + MAXRADIUS) >> MAPBLOCKSHIFT;
 
 	for(bx = xl; bx <= xh; bx++)
 		for(by = yl; by <= yh; by++)
@@ -393,10 +395,10 @@ P_CheckPosition(mobj_t *thing,
 				return false;
 
 	// check lines
-	xl = (tmbbox[BOXLEFT] - bmaporgx) >> MAPBLOCKSHIFT;
-	xh = (tmbbox[BOXRIGHT] - bmaporgx) >> MAPBLOCKSHIFT;
-	yl = (tmbbox[BOXBOTTOM] - bmaporgy) >> MAPBLOCKSHIFT;
-	yh = (tmbbox[BOXTOP] - bmaporgy) >> MAPBLOCKSHIFT;
+	xl = (tmbbox[BOXLEFT] - p_level.blockmap_origin_x) >> MAPBLOCKSHIFT;
+	xh = (tmbbox[BOXRIGHT] - p_level.blockmap_origin_x) >> MAPBLOCKSHIFT;
+	yl = (tmbbox[BOXBOTTOM] - p_level.blockmap_origin_y) >> MAPBLOCKSHIFT;
+	yh = (tmbbox[BOXTOP] - p_level.blockmap_origin_y) >> MAPBLOCKSHIFT;
 
 	for(bx = xl; bx <= xh; bx++)
 		for(by = yl; by <= yh; by++)
@@ -419,7 +421,7 @@ P_TryMove(mobj_t *thing,
 	fixed_t oldy;
 	int side;
 	int oldside;
-	line_t *ld;
+	const struct p_line *ld;
 
 	floatok = false;
 	if(!P_CheckPosition(thing, x, y))
@@ -465,8 +467,8 @@ P_TryMove(mobj_t *thing,
 			side    = P_PointOnLineSide(thing->x, thing->y, ld);
 			oldside = P_PointOnLineSide(oldx, oldy, ld);
 			if(side != oldside) {
-				if(ld->special)
-					P_CrossSpecialLine(ld - lines, oldside, thing);
+				if(ld->special_type)
+					P_CrossSpecialLine(ld - p_level.lines, oldside, thing);
 			}
 		}
 	}
@@ -518,8 +520,8 @@ P_ThingHeightClip(mobj_t *thing) {
 fixed_t bestslidefrac;
 fixed_t secondslidefrac;
 
-line_t *bestslideline;
-line_t *secondslideline;
+const struct p_line *bestslideline;
+const struct p_line *secondslideline;
 
 mobj_t *slidemo;
 
@@ -532,7 +534,7 @@ fixed_t tmymove;
 // so that the next move will slide along the wall.
 //
 void
-P_HitSlideLine(line_t *ld) {
+P_HitSlideLine(const struct p_line *ld) {
 	int side;
 
 	angle_t lineangle;
@@ -542,12 +544,12 @@ P_HitSlideLine(line_t *ld) {
 	fixed_t movelen;
 	fixed_t newlen;
 
-	if(ld->slopetype == ST_HORIZONTAL) {
+	if(ld->slope_type == SLOPE_TYPE_HORIZONTAL) {
 		tmymove = 0;
 		return;
 	}
 
-	if(ld->slopetype == ST_VERTICAL) {
+	if(ld->slope_type == SLOPE_TYPE_VERTICAL) {
 		tmxmove = 0;
 		return;
 	}
@@ -581,7 +583,7 @@ P_HitSlideLine(line_t *ld) {
 //
 boolean
 PTR_SlideTraverse(intercept_t *in) {
-	line_t *li;
+	const struct p_line *li;
 
 	if(!in->isaline)
 		I_Error("PTR_SlideTraverse: not a line?");
@@ -740,7 +742,7 @@ extern fixed_t bottomslope;
 //
 boolean
 PTR_AimTraverse(intercept_t *in) {
-	line_t *li;
+	const struct p_line *li;
 	mobj_t *th;
 	fixed_t slope;
 	fixed_t thingtopslope;
@@ -763,13 +765,13 @@ PTR_AimTraverse(intercept_t *in) {
 
 		dist = FixedMul(attackrange, in->frac);
 
-		if(li->frontsector->floorheight != li->backsector->floorheight) {
+		if(li->front_sector->floor_height != li->back_sector->floor_height) {
 			slope = FixedDiv(openbottom - shootz, dist);
 			if(slope > bottomslope)
 				bottomslope = slope;
 		}
 
-		if(li->frontsector->ceilingheight != li->backsector->ceilingheight) {
+		if(li->front_sector->ceiling_height != li->back_sector->ceiling_height) {
 			slope = FixedDiv(opentop - shootz, dist);
 			if(slope < topslope)
 				topslope = slope;
@@ -824,7 +826,7 @@ PTR_ShootTraverse(intercept_t *in) {
 	fixed_t z;
 	fixed_t frac;
 
-	line_t *li;
+	struct p_line *li;
 
 	mobj_t *th;
 
@@ -836,7 +838,7 @@ PTR_ShootTraverse(intercept_t *in) {
 	if(in->isaline) {
 		li = in->d.line;
 
-		if(li->special)
+		if(li->special_type)
 			P_ShootSpecialLine(shootthing, li);
 
 		if(!(li->flags & ML_TWOSIDED))
@@ -847,13 +849,13 @@ PTR_ShootTraverse(intercept_t *in) {
 
 		dist = FixedMul(attackrange, in->frac);
 
-		if(li->frontsector->floorheight != li->backsector->floorheight) {
+		if(li->front_sector->floor_height != li->back_sector->floor_height) {
 			slope = FixedDiv(openbottom - shootz, dist);
 			if(slope > aimslope)
 				goto hitline;
 		}
 
-		if(li->frontsector->ceilingheight != li->backsector->ceilingheight) {
+		if(li->front_sector->ceiling_height != li->back_sector->ceiling_height) {
 			slope = FixedDiv(opentop - shootz, dist);
 			if(slope < aimslope)
 				goto hitline;
@@ -870,13 +872,13 @@ PTR_ShootTraverse(intercept_t *in) {
 		y    = trace.y + FixedMul(trace.dy, frac);
 		z    = shootz + FixedMul(aimslope, FixedMul(frac, attackrange));
 
-		if(li->frontsector->ceilingpic == skyflatnum) {
+		if(li->front_sector->ceiling == skyflatnum) {
 			// don't shoot the sky!
-			if(z > li->frontsector->ceilingheight)
+			if(z > li->front_sector->ceiling_height)
 				return false;
 
 			// it's a sky hack wall
-			if(li->backsector && li->backsector->ceilingpic == skyflatnum)
+			if(li->back_sector && li->back_sector->ceiling == skyflatnum)
 				return false;
 		}
 
@@ -996,7 +998,7 @@ boolean
 PTR_UseTraverse(intercept_t *in) {
 	int side;
 
-	if(!in->d.line->special) {
+	if(!in->d.line->special_type) {
 		P_LineOpening(in->d.line);
 		if(openrange <= 0) {
 			S_StartSound(usething, sfx_noway);
@@ -1110,10 +1112,10 @@ P_RadiusAttack(mobj_t *spot,
 	fixed_t dist;
 
 	dist       = (damage + MAXRADIUS) << FRACBITS;
-	yh         = (spot->y + dist - bmaporgy) >> MAPBLOCKSHIFT;
-	yl         = (spot->y - dist - bmaporgy) >> MAPBLOCKSHIFT;
-	xh         = (spot->x + dist - bmaporgx) >> MAPBLOCKSHIFT;
-	xl         = (spot->x - dist - bmaporgx) >> MAPBLOCKSHIFT;
+	yh         = (spot->y + dist - p_level.blockmap_origin_y) >> MAPBLOCKSHIFT;
+	yl         = (spot->y - dist - p_level.blockmap_origin_y) >> MAPBLOCKSHIFT;
+	xh         = (spot->x + dist - p_level.blockmap_origin_x) >> MAPBLOCKSHIFT;
+	xl         = (spot->x - dist - p_level.blockmap_origin_x) >> MAPBLOCKSHIFT;
 	bombspot   = spot;
 	bombsource = source;
 	bombdamage = damage;
@@ -1199,7 +1201,7 @@ PIT_ChangeSector(mobj_t *thing) {
 // P_ChangeSector
 //
 boolean
-P_ChangeSector(sector_t *sector,
+P_ChangeSector(const struct p_sector *sector,
 	boolean crunch) {
 	int x;
 	int y;

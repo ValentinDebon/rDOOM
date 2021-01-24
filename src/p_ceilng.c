@@ -61,7 +61,7 @@ T_MoveCeiling(ceiling_t *ceiling) {
 			case silentCrushAndRaise:
 				break;
 			default:
-				S_StartSound((mobj_t *)&ceiling->sector->soundorg,
+				S_StartSound((mobj_t *)&ceiling->sector->sound_origin,
 					sfx_stnmov);
 				// ?
 				break;
@@ -75,7 +75,7 @@ T_MoveCeiling(ceiling_t *ceiling) {
 				break;
 
 			case silentCrushAndRaise:
-				S_StartSound((mobj_t *)&ceiling->sector->soundorg,
+				S_StartSound((mobj_t *)&ceiling->sector->sound_origin,
 					sfx_pstop);
 			case fastCrushAndRaise:
 			case crushAndRaise:
@@ -102,7 +102,7 @@ T_MoveCeiling(ceiling_t *ceiling) {
 			case silentCrushAndRaise:
 				break;
 			default:
-				S_StartSound((mobj_t *)&ceiling->sector->soundorg,
+				S_StartSound((mobj_t *)&ceiling->sector->sound_origin,
 					sfx_stnmov);
 			}
 		}
@@ -110,7 +110,7 @@ T_MoveCeiling(ceiling_t *ceiling) {
 		if(res == pastdest) {
 			switch(ceiling->type) {
 			case silentCrushAndRaise:
-				S_StartSound((mobj_t *)&ceiling->sector->soundorg,
+				S_StartSound((mobj_t *)&ceiling->sector->sound_origin,
 					sfx_pstop);
 			case crushAndRaise:
 				ceiling->speed = CEILSPEED;
@@ -150,11 +150,11 @@ T_MoveCeiling(ceiling_t *ceiling) {
 // Move a ceiling up/down and all around!
 //
 int
-EV_DoCeiling(line_t *line,
+EV_DoCeiling(const struct p_line *line,
 	ceiling_e type) {
 	int secnum;
 	int rtn;
-	sector_t *sec;
+	struct p_sector *sec;
 	ceiling_t *ceiling;
 
 	secnum = -1;
@@ -171,15 +171,15 @@ EV_DoCeiling(line_t *line,
 	}
 
 	while((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0) {
-		sec = &sectors[secnum];
-		if(sec->specialdata)
+		sec = p_level.sectors + secnum;
+		if(sec->special_data)
 			continue;
 
 		// new door thinker
 		rtn     = 1;
 		ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVSPEC, 0);
 		P_AddThinker(&ceiling->thinker);
-		sec->specialdata               = ceiling;
+		sec->special_data               = ceiling;
 		ceiling->thinker.function.acp1 = (actionf_p1)T_MoveCeiling;
 		ceiling->sector                = sec;
 		ceiling->crush                 = false;
@@ -187,8 +187,8 @@ EV_DoCeiling(line_t *line,
 		switch(type) {
 		case fastCrushAndRaise:
 			ceiling->crush        = true;
-			ceiling->topheight    = sec->ceilingheight;
-			ceiling->bottomheight = sec->floorheight + (8 * FRACUNIT);
+			ceiling->topheight    = sec->ceiling_height;
+			ceiling->bottomheight = sec->floor_height + (8 * FRACUNIT);
 			ceiling->direction    = -1;
 			ceiling->speed        = CEILSPEED * 2;
 			break;
@@ -196,10 +196,10 @@ EV_DoCeiling(line_t *line,
 		case silentCrushAndRaise:
 		case crushAndRaise:
 			ceiling->crush     = true;
-			ceiling->topheight = sec->ceilingheight;
+			ceiling->topheight = sec->ceiling_height;
 		case lowerAndCrush:
 		case lowerToFloor:
-			ceiling->bottomheight = sec->floorheight;
+			ceiling->bottomheight = sec->floor_height;
 			if(type != lowerToFloor)
 				ceiling->bottomheight += 8 * FRACUNIT;
 			ceiling->direction = -1;
@@ -244,7 +244,7 @@ P_RemoveActiveCeiling(ceiling_t *c) {
 
 	for(i = 0; i < MAXCEILINGS; i++) {
 		if(activeceilings[i] == c) {
-			activeceilings[i]->sector->specialdata = NULL;
+			activeceilings[i]->sector->special_data = NULL;
 			P_RemoveThinker(&activeceilings[i]->thinker);
 			activeceilings[i] = NULL;
 			break;
@@ -256,12 +256,12 @@ P_RemoveActiveCeiling(ceiling_t *c) {
 // Restart a ceiling that's in-stasis
 //
 void
-P_ActivateInStasisCeiling(line_t *line) {
+P_ActivateInStasisCeiling(const struct p_line *line) {
 	int i;
 
 	for(i = 0; i < MAXCEILINGS; i++) {
 		if(activeceilings[i]
-			&& (activeceilings[i]->tag == line->tag)
+			&& (activeceilings[i]->tag == line->sector_tag)
 			&& (activeceilings[i]->direction == 0)) {
 			activeceilings[i]->direction = activeceilings[i]->olddirection;
 			activeceilings[i]->thinker.function.acp1
@@ -275,14 +275,14 @@ P_ActivateInStasisCeiling(line_t *line) {
 // Stop a ceiling from crushing!
 //
 int
-EV_CeilingCrushStop(line_t *line) {
+EV_CeilingCrushStop(const struct p_line *line) {
 	int i;
 	int rtn;
 
 	rtn = 0;
 	for(i = 0; i < MAXCEILINGS; i++) {
 		if(activeceilings[i]
-			&& (activeceilings[i]->tag == line->tag)
+			&& (activeceilings[i]->tag == line->sector_tag)
 			&& (activeceilings[i]->direction != 0)) {
 			activeceilings[i]->olddirection         = activeceilings[i]->direction;
 			activeceilings[i]->thinker.function.acv = (actionf_v)NULL;

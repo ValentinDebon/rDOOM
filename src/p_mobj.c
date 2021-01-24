@@ -30,6 +30,8 @@
 
 #include "s_sound.h"
 
+#include "r_main.h"
+
 #include "doomstat.h"
 
 void
@@ -150,7 +152,7 @@ P_XYMovement(mobj_t *mo) {
 				P_SlideMove(mo);
 			} else if(mo->flags & MF_MISSILE) {
 				// explode a missile
-				if(ceilingline && ceilingline->backsector && ceilingline->backsector->ceilingpic == skyflatnum) {
+				if(ceilingline && ceilingline->back_sector && ceilingline->back_sector->ceiling == skyflatnum) {
 					// Hack to prevent missiles exploding
 					// against the sky.
 					// Does not handle sky floors.
@@ -183,7 +185,7 @@ P_XYMovement(mobj_t *mo) {
 			|| mo->momx < -FRACUNIT / 4
 			|| mo->momy > FRACUNIT / 4
 			|| mo->momy < -FRACUNIT / 4) {
-			if(mo->floorz != mo->subsector->sector->floorheight)
+			if(mo->floorz != mo->subsector->sector->floor_height)
 				return;
 		}
 	}
@@ -309,7 +311,7 @@ P_NightmareRespawn(mobj_t *mobj) {
 	fixed_t x;
 	fixed_t y;
 	fixed_t z;
-	subsector_t *ss;
+	const struct p_subSector *ss;
 	mobj_t *mo;
 	mapthing_t *mthing;
 
@@ -324,7 +326,7 @@ P_NightmareRespawn(mobj_t *mobj) {
 	// because of removal of the body?
 	mo = P_SpawnMobj(mobj->x,
 		mobj->y,
-		mobj->subsector->sector->floorheight,
+		mobj->subsector->sector->floor_height,
 		MT_TFOG);
 	// initiate teleport sound
 	S_StartSound(mo, sfx_telept);
@@ -332,7 +334,7 @@ P_NightmareRespawn(mobj_t *mobj) {
 	// spawn a teleport fog at the new spot
 	ss = R_PointInSubsector(x, y);
 
-	mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_TFOG);
+	mo = P_SpawnMobj(x, y, ss->sector->floor_height, MT_TFOG);
 
 	S_StartSound(mo, sfx_telept);
 
@@ -456,8 +458,8 @@ P_SpawnMobj(fixed_t x,
 	// set subsector and/or block links
 	P_SetThingPosition(mobj);
 
-	mobj->floorz   = mobj->subsector->sector->floorheight;
-	mobj->ceilingz = mobj->subsector->sector->ceilingheight;
+	mobj->floorz   = mobj->subsector->sector->floor_height;
+	mobj->ceilingz = mobj->subsector->sector->ceiling_height;
 
 	if(z == ONFLOORZ)
 		mobj->z = mobj->floorz;
@@ -515,7 +517,7 @@ P_RespawnSpecials(void) {
 	fixed_t y;
 	fixed_t z;
 
-	subsector_t *ss;
+	const struct p_subSector *ss;
 	mobj_t *mo;
 	mapthing_t *mthing;
 
@@ -540,7 +542,7 @@ P_RespawnSpecials(void) {
 
 	// spawn a teleport fog at the new spot
 	ss = R_PointInSubsector(x, y);
-	mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
+	mo = P_SpawnMobj(x, y, ss->sector->floor_height, MT_IFOG);
 	S_StartSound(mo, sfx_itmbk);
 
 	// find which type to spawn

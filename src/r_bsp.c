@@ -33,11 +33,11 @@
 
 //#include "r_local.h"
 
-seg_t *curline;
-side_t *sidedef;
-line_t *linedef;
-sector_t *frontsector;
-sector_t *backsector;
+const struct p_segment *curline;
+const struct p_side *sidedef;
+struct p_line *linedef;
+struct p_sector *frontsector;
+const struct p_sector *backsector;
 
 drawseg_t drawsegs[MAXDRAWSEGS];
 drawseg_t *ds_p;
@@ -216,7 +216,7 @@ R_ClearClipSegs(void) {
 // and adds any visible pieces to the line list.
 //
 void
-R_AddLine(seg_t *line) {
+R_AddLine(const struct p_segment *line) {
 	int x1;
 	int x2;
 	angle_t angle1;
@@ -227,8 +227,8 @@ R_AddLine(seg_t *line) {
 	curline = line;
 
 	// OPTIMIZE: quickly reject orthogonal back sides.
-	angle1 = R_PointToAngle(line->v1->x, line->v1->y);
-	angle2 = R_PointToAngle(line->v2->x, line->v2->y);
+	angle1 = R_PointToAngle(line->first_vertex->x, line->first_vertex->y);
+	angle2 = R_PointToAngle(line->last_vertex->x, line->last_vertex->y);
 
 	// Clip to view edges.
 	// OPTIMIZE: make constant out of 2*clipangle (FIELDOFVIEW).
@@ -274,20 +274,20 @@ R_AddLine(seg_t *line) {
 	if(x1 == x2)
 		return;
 
-	backsector = line->backsector;
+	backsector = line->back_sector;
 
 	// Single sided line?
 	if(!backsector)
 		goto clipsolid;
 
 	// Closed door.
-	if(backsector->ceilingheight <= frontsector->floorheight
-		|| backsector->floorheight >= frontsector->ceilingheight)
+	if(backsector->ceiling_height <= frontsector->floor_height
+		|| backsector->floor_height >= frontsector->ceiling_height)
 		goto clipsolid;
 
 	// Window.
-	if(backsector->ceilingheight != frontsector->ceilingheight
-		|| backsector->floorheight != frontsector->floorheight)
+	if(backsector->ceiling_height != frontsector->ceiling_height
+		|| backsector->floor_height != frontsector->floor_height)
 		goto clippass;
 
 	// Reject empty lines used for triggers
@@ -295,10 +295,10 @@ R_AddLine(seg_t *line) {
 	// Identical floor and ceiling on both sides,
 	// identical light levels on both sides,
 	// and no middle texture.
-	if(backsector->ceilingpic == frontsector->ceilingpic
-		&& backsector->floorpic == frontsector->floorpic
-		&& backsector->lightlevel == frontsector->lightlevel
-		&& curline->sidedef->midtexture == 0) {
+	if(backsector->ceiling == frontsector->ceiling
+		&& backsector->floor == frontsector->floor
+		&& backsector->lighting == frontsector->lighting
+		&& curline->side->middle_texture == 0) {
 		return;
 	}
 
@@ -331,7 +331,7 @@ int checkcoord[12][4] = {
 };
 
 boolean
-R_CheckBBox(fixed_t *bspcoord) {
+R_CheckBBox(const fixed_t *bspcoord) {
 	int boxx;
 	int boxy;
 	int boxpos;
@@ -443,34 +443,34 @@ R_CheckBBox(fixed_t *bspcoord) {
 void
 R_Subsector(int num) {
 	int count;
-	seg_t *line;
-	subsector_t *sub;
+	const struct p_segment *line;
+	const struct p_subSector *sub;
 
 #ifdef RANGECHECK
-	if(num >= numsubsectors)
+	if(num >= p_level.sub_sectors_count)
 		I_Error("R_Subsector: ss %i with numss = %i",
 			num,
-			numsubsectors);
+			p_level.sub_sectors);
 #endif
 
 	sscount++;
-	sub         = &subsectors[num];
+	sub         = p_level.sub_sectors + num;
 	frontsector = sub->sector;
-	count       = sub->numlines;
-	line        = &segs[sub->firstline];
+	count       = sub->lines_count;
+	line        = p_level.segments + sub->first_line;
 
-	if(frontsector->floorheight < viewz) {
-		floorplane = R_FindPlane(frontsector->floorheight,
-			frontsector->floorpic,
-			frontsector->lightlevel);
+	if(frontsector->floor_height < viewz) {
+		floorplane = R_FindPlane(frontsector->floor_height,
+			frontsector->floor,
+			frontsector->lighting);
 	} else
 		floorplane = NULL;
 
-	if(frontsector->ceilingheight > viewz
-		|| frontsector->ceilingpic == skyflatnum) {
-		ceilingplane = R_FindPlane(frontsector->ceilingheight,
-			frontsector->ceilingpic,
-			frontsector->lightlevel);
+	if(frontsector->ceiling_height > viewz
+		|| frontsector->ceiling == skyflatnum) {
+		ceilingplane = R_FindPlane(frontsector->ceiling_height,
+			frontsector->ceiling,
+			frontsector->lighting);
 	} else
 		ceilingplane = NULL;
 
@@ -489,7 +489,7 @@ R_Subsector(int num) {
 // Just call with BSP root.
 void
 R_RenderBSPNode(int bspnum) {
-	node_t *bsp;
+	const struct p_node *bsp;
 	int side;
 
 	// Found a subsector?
@@ -501,7 +501,7 @@ R_RenderBSPNode(int bspnum) {
 		return;
 	}
 
-	bsp = &nodes[bspnum];
+	bsp = p_level.nodes + bspnum;
 
 	// Decide which side the view point is on.
 	side = R_PointOnSide(viewx, viewy, bsp);
@@ -510,6 +510,6 @@ R_RenderBSPNode(int bspnum) {
 	R_RenderBSPNode(bsp->children[side]);
 
 	// Possibly divide back space.
-	if(R_CheckBBox(bsp->bbox[side ^ 1]))
+	if(R_CheckBBox(bsp->bounding_boxes[side ^ 1]))
 		R_RenderBSPNode(bsp->children[side ^ 1]);
 }

@@ -49,7 +49,7 @@ void
 R_SortVisSprites(void);
 
 void
-R_AddSprites(sector_t *sec);
+R_AddSprites(struct p_sector *sec);
 void
 R_AddPSprites(void);
 void

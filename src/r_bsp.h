@@ -22,11 +22,11 @@
 #pragma interface
 #endif
 
-extern seg_t *curline;
-extern side_t *sidedef;
-extern line_t *linedef;
-extern sector_t *frontsector;
-extern sector_t *backsector;
+extern const struct p_segment *curline;
+extern const struct p_side *sidedef;
+extern struct p_line *linedef;
+extern const struct p_sector *frontsector;
+extern const struct p_sector *backsector;
 
 extern int rw_x;
 extern int rw_stopx;

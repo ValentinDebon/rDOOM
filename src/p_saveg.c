@@ -98,44 +98,44 @@ void
 P_ArchiveWorld(void) {
 	int i;
 	int j;
-	sector_t *sec;
-	line_t *li;
-	side_t *si;
+	const struct p_sector *sec;
+	const struct p_line *li;
+	const struct p_side *si;
 	short *put;
 
 	put = (short *)save_p;
 
 	// do sectors
-	for(i = 0, sec = sectors; i < numsectors; i++, sec++) {
-		*put++ = sec->floorheight >> FRACBITS;
-		*put++ = sec->ceilingheight >> FRACBITS;
-		*put++ = sec->floorpic;
-		*put++ = sec->ceilingpic;
-		*put++ = sec->lightlevel;
-		*put++ = sec->special; // needed?
+	for(i = 0, sec = p_level.sectors; i < p_level.sectors_count; i++, sec++) {
+		*put++ = sec->floor_height >> FRACBITS;
+		*put++ = sec->ceiling_height >> FRACBITS;
+		*put++ = sec->floor;
+		*put++ = sec->ceiling;
+		*put++ = sec->lighting;
+		*put++ = sec->special_type; // needed?
 		*put++ = sec->tag;     // needed?
 	}
 
 	// do lines
-	for(i = 0, li = lines; i < numlines; i++, li++) {
+	for(i = 0, li = p_level.lines; i < p_level.lines_count; i++, li++) {
 		*put++ = li->flags;
-		*put++ = li->special;
-		*put++ = li->tag;
+		*put++ = li->special_type;
+		*put++ = li->sector_tag;
 		for(j = 0; j < 2; j++) {
-			if(li->sidenum[j] == -1)
+			if(li->sides[j] == -1)
 				continue;
 
-			si = &sides[li->sidenum[j]];
+			si = p_level.sides + li->sides[j];
 
-			*put++ = si->textureoffset >> FRACBITS;
-			*put++ = si->rowoffset >> FRACBITS;
-			*put++ = si->toptexture;
-			*put++ = si->bottomtexture;
-			*put++ = si->midtexture;
+			*put++ = si->offset_x >> FRACBITS;
+			*put++ = si->offset_y >> FRACBITS;
+			*put++ = si->top_texture;
+			*put++ = si->bottom_texture;
+			*put++ = si->middle_texture;
 		}
 	}
 
-	save_p = (byte *)put;
+	save_p = (uint8_t *)put;
 }
 
 //
@@ -145,43 +145,43 @@ void
 P_UnArchiveWorld(void) {
 	int i;
 	int j;
-	sector_t *sec;
-	line_t *li;
-	side_t *si;
+	struct p_sector *sec;
+	struct p_line *li;
+	struct p_side *si;
 	short *get;
 
 	get = (short *)save_p;
 
 	// do sectors
-	for(i = 0, sec = sectors; i < numsectors; i++, sec++) {
-		sec->floorheight   = *get++ << FRACBITS;
-		sec->ceilingheight = *get++ << FRACBITS;
-		sec->floorpic      = *get++;
-		sec->ceilingpic    = *get++;
-		sec->lightlevel    = *get++;
-		sec->special       = *get++; // needed?
-		sec->tag           = *get++; // needed?
-		sec->specialdata   = 0;
-		sec->soundtarget   = 0;
+	for(i = 0, sec = p_level.sectors; i < p_level.sectors_count; i++, sec++) {
+		sec->floor_height   = *get++ << FRACBITS;
+		sec->ceiling_height = *get++ << FRACBITS;
+		sec->floor          = *get++;
+		sec->ceiling        = *get++;
+		sec->lighting       = *get++;
+		sec->special_type   = *get++; // needed?
+		sec->tag            = *get++; // needed?
+		sec->special_data   = 0;
+		sec->sound_target   = 0;
 	}
 
 	// do lines
-	for(i = 0, li = lines; i < numlines; i++, li++) {
-		li->flags   = *get++;
-		li->special = *get++;
-		li->tag     = *get++;
+	for(i = 0, li = p_level.lines; i < p_level.lines_count; i++, li++) {
+		li->flags        = *get++;
+		li->special_type = *get++;
+		li->sector_tag   = *get++;
 		for(j = 0; j < 2; j++) {
-			if(li->sidenum[j] == -1)
+			if(li->sides[j] == -1)
 				continue;
-			si                = &sides[li->sidenum[j]];
-			si->textureoffset = *get++ << FRACBITS;
-			si->rowoffset     = *get++ << FRACBITS;
-			si->toptexture    = *get++;
-			si->bottomtexture = *get++;
-			si->midtexture    = *get++;
+			si                 = p_level.sides + li->sides[j];
+			si->offset_x       = *get++ << FRACBITS;
+			si->offset_y       = *get++ << FRACBITS;
+			si->top_texture    = *get++;
+			si->bottom_texture = *get++;
+			si->middle_texture = *get++;
 		}
 	}
-	save_p = (byte *)get;
+	save_p = (uint8_t *)get;
 }
 
 //
@@ -267,8 +267,8 @@ P_UnArchiveThinkers(void) {
 			}
 			P_SetThingPosition(mobj);
 			mobj->info                  = &mobjinfo[mobj->type];
-			mobj->floorz                = mobj->subsector->sector->floorheight;
-			mobj->ceilingz              = mobj->subsector->sector->ceilingheight;
+			mobj->floorz                = mobj->subsector->sector->floor_height;
+			mobj->ceilingz              = mobj->subsector->sector->ceiling_height;
 			mobj->thinker.function.acp1 = (actionf_p1)P_MobjThinker;
 			P_AddThinker(&mobj->thinker);
 			break;
@@ -330,7 +330,7 @@ P_ArchiveSpecials(void) {
 				ceiling = (ceiling_t *)save_p;
 				memcpy(ceiling, th, sizeof(*ceiling));
 				save_p += sizeof(*ceiling);
-				ceiling->sector = (sector_t *)(ceiling->sector - sectors);
+				ceiling->sector = (struct p_sector *)(ceiling->sector - p_level.sectors);
 			}
 			continue;
 		}
@@ -341,7 +341,7 @@ P_ArchiveSpecials(void) {
 			ceiling = (ceiling_t *)save_p;
 			memcpy(ceiling, th, sizeof(*ceiling));
 			save_p += sizeof(*ceiling);
-			ceiling->sector = (sector_t *)(ceiling->sector - sectors);
+			ceiling->sector = (struct p_sector *)(ceiling->sector - p_level.sectors);
 			continue;
 		}
 
@@ -351,7 +351,7 @@ P_ArchiveSpecials(void) {
 			door = (vldoor_t *)save_p;
 			memcpy(door, th, sizeof(*door));
 			save_p += sizeof(*door);
-			door->sector = (sector_t *)(door->sector - sectors);
+			door->sector = (struct p_sector *)(door->sector - p_level.sectors);
 			continue;
 		}
 
@@ -361,7 +361,7 @@ P_ArchiveSpecials(void) {
 			floor = (floormove_t *)save_p;
 			memcpy(floor, th, sizeof(*floor));
 			save_p += sizeof(*floor);
-			floor->sector = (sector_t *)(floor->sector - sectors);
+			floor->sector = (struct p_sector *)(floor->sector - p_level.sectors);
 			continue;
 		}
 
@@ -371,7 +371,7 @@ P_ArchiveSpecials(void) {
 			plat = (plat_t *)save_p;
 			memcpy(plat, th, sizeof(*plat));
 			save_p += sizeof(*plat);
-			plat->sector = (sector_t *)(plat->sector - sectors);
+			plat->sector = (struct p_sector *)(plat->sector - p_level.sectors);
 			continue;
 		}
 
@@ -381,7 +381,7 @@ P_ArchiveSpecials(void) {
 			flash = (lightflash_t *)save_p;
 			memcpy(flash, th, sizeof(*flash));
 			save_p += sizeof(*flash);
-			flash->sector = (sector_t *)(flash->sector - sectors);
+			flash->sector = (struct p_sector *)(flash->sector - p_level.sectors);
 			continue;
 		}
 
@@ -391,7 +391,7 @@ P_ArchiveSpecials(void) {
 			strobe = (strobe_t *)save_p;
 			memcpy(strobe, th, sizeof(*strobe));
 			save_p += sizeof(*strobe);
-			strobe->sector = (sector_t *)(strobe->sector - sectors);
+			strobe->sector = (struct p_sector *)(strobe->sector - p_level.sectors);
 			continue;
 		}
 
@@ -401,7 +401,7 @@ P_ArchiveSpecials(void) {
 			glow = (glow_t *)save_p;
 			memcpy(glow, th, sizeof(*glow));
 			save_p += sizeof(*glow);
-			glow->sector = (sector_t *)(glow->sector - sectors);
+			glow->sector = (struct p_sector *)(glow->sector - p_level.sectors);
 			continue;
 		}
 	}
@@ -436,8 +436,8 @@ P_UnArchiveSpecials(void) {
 			ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVEL, NULL);
 			memcpy(ceiling, save_p, sizeof(*ceiling));
 			save_p += sizeof(*ceiling);
-			ceiling->sector              = &sectors[(intptr_t)ceiling->sector];
-			ceiling->sector->specialdata = ceiling;
+			ceiling->sector              = p_level.sectors + (intptr_t)ceiling->sector;
+			ceiling->sector->special_data = ceiling;
 
 			if(ceiling->thinker.function.acp1)
 				ceiling->thinker.function.acp1 = (actionf_p1)T_MoveCeiling;
@@ -451,8 +451,8 @@ P_UnArchiveSpecials(void) {
 			door = Z_Malloc(sizeof(*door), PU_LEVEL, NULL);
 			memcpy(door, save_p, sizeof(*door));
 			save_p += sizeof(*door);
-			door->sector                = &sectors[(intptr_t)door->sector];
-			door->sector->specialdata   = door;
+			door->sector                = p_level.sectors + (intptr_t)door->sector;
+			door->sector->special_data   = door;
 			door->thinker.function.acp1 = (actionf_p1)T_VerticalDoor;
 			P_AddThinker(&door->thinker);
 			break;
@@ -462,8 +462,8 @@ P_UnArchiveSpecials(void) {
 			floor = Z_Malloc(sizeof(*floor), PU_LEVEL, NULL);
 			memcpy(floor, save_p, sizeof(*floor));
 			save_p += sizeof(*floor);
-			floor->sector                = &sectors[(intptr_t)floor->sector];
-			floor->sector->specialdata   = floor;
+			floor->sector                = p_level.sectors + (intptr_t)floor->sector;
+			floor->sector->special_data   = floor;
 			floor->thinker.function.acp1 = (actionf_p1)T_MoveFloor;
 			P_AddThinker(&floor->thinker);
 			break;
@@ -473,8 +473,8 @@ P_UnArchiveSpecials(void) {
 			plat = Z_Malloc(sizeof(*plat), PU_LEVEL, NULL);
 			memcpy(plat, save_p, sizeof(*plat));
 			save_p += sizeof(*plat);
-			plat->sector              = &sectors[(intptr_t)plat->sector];
-			plat->sector->specialdata = plat;
+			plat->sector              = p_level.sectors + (intptr_t)plat->sector;
+			plat->sector->special_data = plat;
 
 			if(plat->thinker.function.acp1)
 				plat->thinker.function.acp1 = (actionf_p1)T_PlatRaise;
@@ -488,7 +488,7 @@ P_UnArchiveSpecials(void) {
 			flash = Z_Malloc(sizeof(*flash), PU_LEVEL, NULL);
 			memcpy(flash, save_p, sizeof(*flash));
 			save_p += sizeof(*flash);
-			flash->sector                = &sectors[(intptr_t)flash->sector];
+			flash->sector                = p_level.sectors + (intptr_t)flash->sector;
 			flash->thinker.function.acp1 = (actionf_p1)T_LightFlash;
 			P_AddThinker(&flash->thinker);
 			break;
@@ -498,7 +498,7 @@ P_UnArchiveSpecials(void) {
 			strobe = Z_Malloc(sizeof(*strobe), PU_LEVEL, NULL);
 			memcpy(strobe, save_p, sizeof(*strobe));
 			save_p += sizeof(*strobe);
-			strobe->sector                = &sectors[(intptr_t)strobe->sector];
+			strobe->sector                = p_level.sectors + (intptr_t)strobe->sector;
 			strobe->thinker.function.acp1 = (actionf_p1)T_StrobeFlash;
 			P_AddThinker(&strobe->thinker);
 			break;
@@ -508,7 +508,7 @@ P_UnArchiveSpecials(void) {
 			glow = Z_Malloc(sizeof(*glow), PU_LEVEL, NULL);
 			memcpy(glow, save_p, sizeof(*glow));
 			save_p += sizeof(*glow);
-			glow->sector                = &sectors[(intptr_t)glow->sector];
+			glow->sector                = p_level.sectors + (intptr_t)glow->sector;
 			glow->thinker.function.acp1 = (actionf_p1)T_Glow;
 			P_AddThinker(&glow->thinker);
 			break;

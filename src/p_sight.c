@@ -25,6 +25,8 @@
 // State.
 #include "r_state.h"
 
+#include "r_main.h"
+
 //
 // P_CheckSight
 //
@@ -117,46 +119,46 @@ P_InterceptVector2(divline_t *v2,
 //
 boolean
 P_CrossSubsector(int num) {
-	seg_t *seg;
-	line_t *line;
+	const struct p_segment *seg;
+	struct p_line *line;
 	int s1;
 	int s2;
 	int count;
-	subsector_t *sub;
-	sector_t *front;
-	sector_t *back;
+	const struct p_subSector *sub;
+	const struct p_sector *front;
+	const struct p_sector *back;
 	fixed_t opentop;
 	fixed_t openbottom;
 	divline_t divl;
-	vertex_t *v1;
-	vertex_t *v2;
+	const struct p_vertex *v1;
+	const struct p_vertex *v2;
 	fixed_t frac;
 	fixed_t slope;
 
 #ifdef RANGECHECK
-	if(num >= numsubsectors)
+	if(num >= p_level.sub_sectors_count)
 		I_Error("P_CrossSubsector: ss %i with numss = %i",
 			num,
-			numsubsectors);
+			p_level.sub_sectors_count);
 #endif
 
-	sub = &subsectors[num];
+	sub = p_level.sub_sectors + num;
 
 	// check lines
-	count = sub->numlines;
-	seg   = &segs[sub->firstline];
+	count = sub->lines_count;
+	seg   = p_level.segments + sub->first_line;
 
 	for(; count; seg++, count--) {
-		line = seg->linedef;
+		line = seg->line;
 
-		// allready checked other side?
-		if(line->validcount == validcount)
+		// already checked other side?
+		if(line->valid_count == validcount)
 			continue;
 
-		line->validcount = validcount;
+		line->valid_count = validcount;
 
-		v1 = line->v1;
-		v2 = line->v2;
+		v1 = line->first_vertex;
+		v2 = line->last_vertex;
 		s1 = P_DivlineSide(v1->x, v1->y, &strace);
 		s2 = P_DivlineSide(v2->x, v2->y, &strace);
 
@@ -181,26 +183,26 @@ P_CrossSubsector(int num) {
 			return false;
 
 		// crosses a two sided line
-		front = seg->frontsector;
-		back  = seg->backsector;
+		front = seg->front_sector;
+		back  = seg->back_sector;
 
 		// no wall to block sight with?
-		if(front->floorheight == back->floorheight
-			&& front->ceilingheight == back->ceilingheight)
+		if(front->floor_height == back->floor_height
+			&& front->ceiling_height == back->ceiling_height)
 			continue;
 
 		// possible occluder
 		// because of ceiling height differences
-		if(front->ceilingheight < back->ceilingheight)
-			opentop = front->ceilingheight;
+		if(front->ceiling_height < back->ceiling_height)
+			opentop = front->ceiling_height;
 		else
-			opentop = back->ceilingheight;
+			opentop = back->ceiling_height;
 
 		// because of ceiling height differences
-		if(front->floorheight > back->floorheight)
-			openbottom = front->floorheight;
+		if(front->floor_height > back->floor_height)
+			openbottom = front->floor_height;
 		else
-			openbottom = back->floorheight;
+			openbottom = back->floor_height;
 
 		// quick test for totally closed doors
 		if(openbottom >= opentop)
@@ -208,13 +210,13 @@ P_CrossSubsector(int num) {
 
 		frac = P_InterceptVector2(&strace, &divl);
 
-		if(front->floorheight != back->floorheight) {
+		if(front->floor_height != back->floor_height) {
 			slope = FixedDiv(openbottom - sightzstart, frac);
 			if(slope > bottomslope)
 				bottomslope = slope;
 		}
 
-		if(front->ceilingheight != back->ceilingheight) {
+		if(front->ceiling_height != back->ceiling_height) {
 			slope = FixedDiv(opentop - sightzstart, frac);
 			if(slope < topslope)
 				topslope = slope;
@@ -234,7 +236,7 @@ P_CrossSubsector(int num) {
 //
 boolean
 P_CrossBSPNode(int bspnum) {
-	node_t *bsp;
+	const struct p_node *bsp;
 	int side;
 
 	if(bspnum & NF_SUBSECTOR) {
@@ -244,7 +246,7 @@ P_CrossBSPNode(int bspnum) {
 			return P_CrossSubsector(bspnum & (~NF_SUBSECTOR));
 	}
 
-	bsp = &nodes[bspnum];
+	bsp = p_level.nodes + bspnum;
 
 	// decide which side the start point is on
 	side = P_DivlineSide(strace.x, strace.y, (divline_t *)bsp);
@@ -283,14 +285,14 @@ P_CheckSight(mobj_t *t1,
 	// First check for trivial rejection.
 
 	// Determine subsector entries in REJECT table.
-	s1      = (t1->subsector->sector - sectors);
-	s2      = (t2->subsector->sector - sectors);
-	pnum    = s1 * numsectors + s2;
+	s1      = (t1->subsector->sector - p_level.sectors);
+	s2      = (t2->subsector->sector - p_level.sectors);
+	pnum    = s1 * p_level.sectors_count + s2;
 	bytenum = pnum >> 3;
 	bitnum  = 1 << (pnum & 7);
 
 	// Check in REJECT table.
-	if(rejectmatrix[bytenum] & bitnum) {
+	if(p_level.reject_matrix[bytenum] & bitnum) {
 		sightcounts[0]++;
 
 		// can't possibly be connected
@@ -315,5 +317,5 @@ P_CheckSight(mobj_t *t1,
 	strace.dy = t2->y - t1->y;
 
 	// the head node is the last node output
-	return P_CrossBSPNode(numnodes - 1);
+	return P_CrossBSPNode(p_level.nodes_count - 1);
 }

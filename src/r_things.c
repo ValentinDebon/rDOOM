@@ -318,7 +318,8 @@ R_DrawMaskedColumn(column_t *column) {
 
 	basetexturemid = dc_texturemid;
 
-	for(; column->topdelta != 0xff;) {
+	puts("R_DrawMaskedColumn");
+	while(column->topdelta != 255) {
 		// calculate unclipped screen coordinates
 		//  for post
 		topscreen    = sprtopscreen + spryscale * column->topdelta;
@@ -341,6 +342,7 @@ R_DrawMaskedColumn(column_t *column) {
 			//  or (SHADOW) R_DrawFuzzColumn.
 			colfunc();
 		}
+
 		column = (column_t *)((byte *)column + column->length + 4);
 	}
 
@@ -381,10 +383,10 @@ R_DrawVisSprite(vissprite_t *vis,
 	for(dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale) {
 		texturecolumn = frac >> FRACBITS;
 #ifdef RANGECHECK
-		if(texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+		if(texturecolumn < 0 || texturecolumn >= LE_U16(patch->width))
 			I_Error("R_DrawSpriteRange: bad texturecolumn");
 #endif
-		column = (column_t *)((byte *)patch + LONG(patch->columnofs[texturecolumn]));
+		column = (column_t *)((byte *)patch + LE_U32(patch->columnofs[texturecolumn]));
 		R_DrawMaskedColumn(column);
 	}
 
@@ -544,7 +546,7 @@ R_ProjectSprite(mobj_t *thing) {
 // During BSP traversal, this adds sprites by sector.
 //
 void
-R_AddSprites(sector_t *sec) {
+R_AddSprites(struct p_sector *sec) {
 	mobj_t *thing;
 	int lightnum;
 
@@ -552,13 +554,13 @@ R_AddSprites(sector_t *sec) {
 	// A sector might have been split into several
 	//  subsectors during BSP building.
 	// Thus we check whether its already added.
-	if(sec->validcount == validcount)
+	if(sec->valid_count == validcount)
 		return;
 
 	// Well, now it will be done.
-	sec->validcount = validcount;
+	sec->valid_count = validcount;
 
-	lightnum = (sec->lightlevel >> LIGHTSEGSHIFT) + extralight;
+	lightnum = (sec->lighting >> LIGHTSEGSHIFT) + extralight;
 
 	if(lightnum < 0)
 		spritelights = scalelight[0];
@@ -568,7 +570,7 @@ R_AddSprites(sector_t *sec) {
 		spritelights = scalelight[lightnum];
 
 	// Handle all things in sector.
-	for(thing = sec->thinglist; thing; thing = thing->snext)
+	for(thing = sec->thing_list; thing; thing = thing->snext)
 		R_ProjectSprite(thing);
 }
 
@@ -671,7 +673,7 @@ R_DrawPlayerSprites(void) {
 	pspdef_t *psp;
 
 	// get light level
-	lightnum = (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
+	lightnum = (viewplayer->mo->subsector->sector->lighting >> LIGHTSEGSHIFT)
 			   + extralight;
 
 	if(lightnum < 0)
@@ -760,6 +762,7 @@ R_DrawSprite(vissprite_t *spr) {
 	fixed_t lowscale;
 	int silhouette;
 
+	puts("R_DrawSprite");
 	for(x = spr->x1; x <= spr->x2; x++)
 		clipbot[x] = cliptop[x] = -2;
 
@@ -791,8 +794,9 @@ R_DrawSprite(vissprite_t *spr) {
 			|| (lowscale < spr->scale
 				&& !R_PointOnSegSide(spr->gx, spr->gy, ds->curline))) {
 			// masked mid texture?
-			if(ds->maskedtexturecol)
+			if(ds->maskedtexturecol) {
 				R_RenderMaskedSegRange(ds, r1, r2);
+			}
 			// seg is behind sprite
 			continue;
 		}
@@ -850,6 +854,8 @@ void
 R_DrawMasked(void) {
 	vissprite_t *spr;
 	drawseg_t *ds;
+
+	puts("R_DrawMasked");
 
 	R_SortVisSprites();
 

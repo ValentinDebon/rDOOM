@@ -33,6 +33,8 @@
 
 #include "p_pspr.h"
 
+#include "r_main.h"
+
 #define LOWERSPEED FRACUNIT * 6
 #define RAISESPEED FRACUNIT * 6
 
