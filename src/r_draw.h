@@ -74,8 +74,8 @@ extern fixed_t ds_ystep;
 // start of a 64*64 tile image
 extern const uint8_t *ds_source;
 
-extern byte *translationtables;
-extern byte *dc_translation;
+extern uint8_t *translationtables;
+extern uint8_t *dc_translation;
 
 // Span blitting for rows, floor/ceiling.
 // No Sepctre effect needed.

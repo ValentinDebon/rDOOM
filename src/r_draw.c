@@ -51,20 +51,20 @@
 //  and the total size == width*height*depth/8.,
 //
 
-byte *viewimage;
+uint8_t *viewimage;
 int viewwidth;
 int scaledviewwidth;
 int viewheight;
 int viewwindowx;
 int viewwindowy;
-byte *ylookup[MAXHEIGHT];
+uint8_t *ylookup[MAXHEIGHT];
 int columnofs[MAXWIDTH];
 
 // Color tables for different players,
 //  translate a limited part to another
 //  (color ramps used for  suit colors).
 //
-byte translations[3][256];
+uint8_t translations[3][256];
 
 //
 // R_DrawColumn
@@ -93,7 +93,7 @@ int dccount;
 void
 R_DrawColumn(void) {
 	int count;
-	byte *dest;
+	uint8_t *dest;
 	fixed_t frac;
 	fixed_t fracstep;
 
@@ -140,9 +140,9 @@ R_DrawColumn(void) {
 void R_DrawColumn (void) 
 { 
     int			count; 
-    byte*		source;
-    byte*		dest;
-    byte*		colormap;
+    uint8_t*		source;
+    uint8_t*		dest;
+    uint8_t*		colormap;
     
     unsigned		frac;
     unsigned		fracstep;
@@ -195,8 +195,8 @@ void R_DrawColumn (void)
 void
 R_DrawColumnLow(void) {
 	int count;
-	byte *dest;
-	byte *dest2;
+	uint8_t *dest;
+	uint8_t *dest2;
 	fixed_t frac;
 	fixed_t fracstep;
 
@@ -306,7 +306,7 @@ int fuzzpos = 0;
 void
 R_DrawFuzzColumn(void) {
 	int count;
-	byte *dest;
+	uint8_t *dest;
 	fixed_t frac;
 	fixed_t fracstep;
 
@@ -394,13 +394,13 @@ R_DrawFuzzColumn(void) {
 //  of the BaronOfHell, the HellKnight, uses
 //  identical sprites, kinda brightened up.
 //
-byte *dc_translation;
-byte *translationtables;
+uint8_t *dc_translation;
+uint8_t *translationtables;
 
 void
 R_DrawTranslatedColumn(void) {
 	int count;
-	byte *dest;
+	uint8_t *dest;
 	fixed_t frac;
 	fixed_t fracstep;
 
@@ -471,7 +471,7 @@ R_InitTranslationTables(void) {
 	int i;
 
 	translationtables = Z_Malloc(256 * 3 + 255, PU_STATIC, 0);
-	translationtables = (byte *)(((intptr_t)translationtables + 255) & ~255);
+	translationtables = (uint8_t *)(((intptr_t)translationtables + 255) & ~255);
 
 	// translate just the 16 green colors
 	for(i = 0; i < 256; i++) {
@@ -523,7 +523,7 @@ void
 R_DrawSpan(void) {
 	fixed_t xfrac;
 	fixed_t yfrac;
-	byte *dest;
+	uint8_t *dest;
 	int count;
 	int spot;
 
@@ -570,9 +570,9 @@ void R_DrawSpan (void)
 { 
     unsigned	position, step;
 
-    byte*	source;
-    byte*	colormap;
-    byte*	dest;
+    uint8_t*	source;
+    uint8_t*	colormap;
+    uint8_t*	dest;
     
     unsigned	count;
     usingned	spot; 
@@ -642,7 +642,7 @@ void
 R_DrawSpanLow(void) {
 	fixed_t xfrac;
 	fixed_t yfrac;
-	byte *dest;
+	uint8_t *dest;
 	int count;
 	int spot;
 
@@ -722,8 +722,8 @@ R_InitBuffer(int width,
 //
 void
 R_FillBackScreen(void) {
-	const byte *src;
-	byte *dest;
+	const uint8_t *src;
+	uint8_t *dest;
 	int x;
 	int y;
 	const patch_t *patch;

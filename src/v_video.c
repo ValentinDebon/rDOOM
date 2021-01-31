@@ -31,12 +31,12 @@
 #include "v_video.h"
 
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
-byte *screens[5];
+uint8_t *screens[5];
 
 int dirtybox[4];
 
 // Now where did these came from?
-byte gammatable[5][256] = {
+uint8_t gammatable[5][256] = {
 	{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255 },
 
 	{ 2, 4, 5, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 214, 215, 216, 217, 218, 219, 220, 221, 222, 222, 223, 224, 225, 226, 227, 228, 229, 230, 230, 231, 232, 233, 234, 235, 236, 237, 237, 238, 239, 240, 241, 242, 243, 244, 245, 245, 246, 247, 248, 249, 250, 251, 252, 252, 253, 254, 255 },
@@ -74,8 +74,8 @@ V_CopyRect(int srcx,
 	int destx,
 	int desty,
 	int destscrn) {
-	byte *src;
-	byte *dest;
+	uint8_t *src;
+	uint8_t *dest;
 
 #ifdef RANGECHECK
 	if(srcx < 0
@@ -115,9 +115,9 @@ V_DrawPatch(int x,
 	int count;
 	int col;
 	column_t *column;
-	byte *desttop;
-	byte *dest;
-	byte *source;
+	uint8_t *desttop;
+	uint8_t *dest;
+	uint8_t *source;
 	int w;
 
 	y -= LE_S16(patch->topoffset);
@@ -144,11 +144,11 @@ V_DrawPatch(int x,
 	w = LE_U16(patch->width);
 
 	for(; col < w; x++, col++, desttop++) {
-		column = (column_t *)((byte *)patch + LE_U32(patch->columnofs[col]));
+		column = (column_t *)((uint8_t *)patch + LE_U32(patch->columnofs[col]));
 
 		// step through the posts in a column
 		while(column->topdelta != 0xff) {
-			source = (byte *)column + 3;
+			source = (uint8_t *)column + 3;
 			dest   = desttop + column->topdelta * SCREENWIDTH;
 			count  = column->length;
 
@@ -156,8 +156,7 @@ V_DrawPatch(int x,
 				*dest = *source++;
 				dest += SCREENWIDTH;
 			}
-			column = (column_t *)((byte *)column + column->length
-								  + 4);
+			column = (column_t *)((uint8_t *)column + column->length + 4);
 		}
 	}
 }
@@ -176,9 +175,9 @@ V_DrawPatchFlipped(int x,
 	int count;
 	int col;
 	column_t *column;
-	byte *desttop;
-	byte *dest;
-	byte *source;
+	uint8_t *desttop;
+	uint8_t *dest;
+	uint8_t *source;
 	int w;
 
 	y -= LE_S16(patch->topoffset);
@@ -203,11 +202,11 @@ V_DrawPatchFlipped(int x,
 	w = LE_U16(patch->width);
 
 	for(; col < w; x++, col++, desttop++) {
-		column = (column_t *)((byte *)patch + LE_U32(patch->columnofs[w - 1 - col]));
+		column = (column_t *)((uint8_t *)patch + LE_U32(patch->columnofs[w - 1 - col]));
 
 		// step through the posts in a column
 		while(column->topdelta != 0xff) {
-			source = (byte *)column + 3;
+			source = (uint8_t *)column + 3;
 			dest   = desttop + column->topdelta * SCREENWIDTH;
 			count  = column->length;
 
@@ -215,7 +214,7 @@ V_DrawPatchFlipped(int x,
 				*dest = *source++;
 				dest += SCREENWIDTH;
 			}
-			column = (column_t *)((byte *)column + column->length
+			column = (column_t *)((uint8_t *)column + column->length
 								  + 4);
 		}
 	}
@@ -236,9 +235,9 @@ V_DrawPatchDirect(int x,
     int		count;
     int		col; 
     column_t*	column; 
-    byte*	desttop;
-    byte*	dest;
-    byte*	source; 
+    uint8_t*	desttop;
+    uint8_t*	dest;
+    uint8_t*	source; 
     int		w; 
 	 
     y -= SHORT(patch->topoffset); 
@@ -262,13 +261,13 @@ V_DrawPatchDirect(int x,
     for ( col = 0 ; col<w ; col++) 
     { 
 	outp (SC_INDEX+1,1<<(x&3)); 
-	column = (column_t *)((byte *)patch + LONG(patch->columnofs[col])); 
+	column = (column_t *)((uint8_t *)patch + LONG(patch->columnofs[col])); 
  
 	// step through the posts in a column 
 	 
 	while (column->topdelta != 0xff ) 
 	{ 
-	    source = (byte *)column + 3; 
+	    source = (uint8_t *)column + 3; 
 	    dest = desttop + column->topdelta*SCREENWIDTH/4; 
 	    count = column->length; 
  
@@ -277,7 +276,7 @@ V_DrawPatchDirect(int x,
 		*dest = *source++; 
 		dest += SCREENWIDTH/4; 
 	    } 
-	    column = (column_t *)(  (byte *)column + column->length 
+	    column = (column_t *)(  (uint8_t *)column + column->length 
 				    + 4 ); 
 	} 
 	if ( ((++x)&3) == 0 ) 
@@ -295,8 +294,8 @@ V_DrawBlock(int x,
 	int scrn,
 	int width,
 	int height,
-	byte *src) {
-	byte *dest;
+	uint8_t *src) {
+	uint8_t *dest;
 
 #ifdef RANGECHECK
 	if(x < 0
@@ -329,8 +328,8 @@ V_GetBlock(int x,
 	int scrn,
 	int width,
 	int height,
-	byte *dest) {
-	byte *src;
+	uint8_t *dest) {
+	uint8_t *src;
 
 #ifdef RANGECHECK
 	if(x < 0
@@ -357,7 +356,7 @@ V_GetBlock(int x,
 void
 V_Init(void) {
 	int i;
-	byte *base;
+	uint8_t *base;
 
 	// stick these in low dos memory on PCs
 

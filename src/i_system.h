@@ -35,7 +35,7 @@ I_Init(void);
 // Called by startup code
 // to get the ammount of memory to malloc
 // for the zone management.
-byte *
+uint8_t *
 I_ZoneBase(int *size);
 
 // Called by D_DoomLoop,
@@ -80,7 +80,7 @@ I_Quit(void);
 
 // Allocates from low memory under dos,
 // just mallocs under unix
-byte *
+uint8_t *
 I_AllocLow(int length);
 
 void

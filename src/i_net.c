@@ -42,7 +42,7 @@
 
 void
 NetSend(void);
-boolean
+bool
 NetListen(void);
 
 //
@@ -204,7 +204,7 @@ GetLocalAddress(void) {
 //
 void
 I_InitNetwork(void) {
-	boolean trueval = true;
+	bool trueval = true;
 	int i;
 	int p;
 	struct hostent *hostentry; // host information entry

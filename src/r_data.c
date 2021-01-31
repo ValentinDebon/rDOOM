@@ -132,7 +132,7 @@ fixed_t *textureheight;
 int *texturecompositesize;
 short **texturecolumnlump;
 unsigned short **texturecolumnofs;
-byte **texturecomposite;
+uint8_t **texturecomposite;
 
 // for global animation
 int *flattranslation;
@@ -164,18 +164,18 @@ const lighttable_t *colormaps;
 //
 void
 R_DrawColumnInCache(column_t *patch,
-	byte *cache,
+	uint8_t *cache,
 	int originy,
 	int cacheheight) {
 	int count;
 	int position;
-	byte *source;
-	byte *dest;
+	uint8_t *source;
+	uint8_t *dest;
 
-	dest = (byte *)cache + 3;
+	dest = (uint8_t *)cache + 3;
 
 	while(patch->topdelta != 0xff) {
-		source   = (byte *)patch + 3;
+		source   = (uint8_t *)patch + 3;
 		count    = patch->length;
 		position = originy + patch->topdelta;
 
@@ -190,7 +190,7 @@ R_DrawColumnInCache(column_t *patch,
 		if(count > 0)
 			memcpy(cache + position, source, count);
 
-		patch = (column_t *)((byte *)patch + patch->length + 4);
+		patch = (column_t *)((uint8_t *)patch + patch->length + 4);
 	}
 }
 
@@ -202,7 +202,7 @@ R_DrawColumnInCache(column_t *patch,
 //
 void
 R_GenerateComposite(int texnum) {
-	byte *block;
+	uint8_t *block;
 	texture_t *texture;
 	texpatch_t *patch;
 	const patch_t *realpatch;
@@ -265,7 +265,7 @@ R_GenerateComposite(int texnum) {
 void
 R_GenerateLookup(int texnum) {
 	texture_t *texture;
-	byte *patchcount; // patchcount[texture->width]
+	uint8_t *patchcount; // patchcount[texture->width]
 	texpatch_t *patch;
 	const patch_t *realpatch;
 	int x;
@@ -288,7 +288,7 @@ R_GenerateLookup(int texnum) {
 	//  that are covered by more than one patch.
 	// Fill in the lump / offset, so columns
 	//  with only a single patch are all done.
-	patchcount = (byte *)alloca(texture->width);
+	patchcount = (uint8_t *)alloca(texture->width);
 	memset(patchcount, 0, texture->width);
 	patch = texture->patches;
 
@@ -469,7 +469,7 @@ R_InitTextures(void) {
 		if(offset > maxoff)
 			I_Error("R_InitTextures: bad texture directory");
 
-		mtexture = (maptexture_t *)((byte *)maptex + offset);
+		mtexture = (maptexture_t *)((uint8_t *)maptex + offset);
 
 		texture = textures[i] = Z_Malloc(sizeof(texture_t) + sizeof(texpatch_t) * (LE_U16(mtexture->patchcount) - 1),
 			PU_STATIC, 0);

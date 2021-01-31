@@ -31,11 +31,11 @@
 //
 
 // when zero, stop the wipe
-static boolean go = 0;
+static bool go = 0;
 
-static byte *wipe_scr_start;
-static byte *wipe_scr_end;
-static byte *wipe_scr;
+static uint8_t *wipe_scr_start;
+static uint8_t *wipe_scr_end;
+static uint8_t *wipe_scr;
 
 void
 wipe_shittyColMajorXform(short *array,
@@ -68,9 +68,9 @@ int
 wipe_doColorXForm(int width,
 	int height,
 	int ticks) {
-	boolean changed;
-	byte *w;
-	byte *e;
+	bool changed;
+	uint8_t *w;
+	uint8_t *e;
 	int newval;
 
 	changed = false;
@@ -152,7 +152,7 @@ wipe_doMelt(int width,
 
 	short *s;
 	short *d;
-	boolean done = true;
+	bool done = true;
 
 	width /= 2;
 
@@ -234,7 +234,7 @@ wipe_ScreenWipe(int wipeno,
 	// initial stuff
 	if(!go) {
 		go = 1;
-		// wipe_scr = (byte *) Z_Malloc(width*height, PU_STATIC, 0); // DEBUG
+		// wipe_scr = (uint8_t *) Z_Malloc(width*height, PU_STATIC, 0); // DEBUG
 		wipe_scr = screens[0];
 		(*wipes[wipeno * 3])(width, height, ticks);
 	}

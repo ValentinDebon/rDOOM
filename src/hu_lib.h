@@ -17,6 +17,8 @@
 #ifndef __HULIB__
 #define __HULIB__
 
+#include <stdbool.h>
+
 // We are referring to patches.
 #include "r_defs.h"
 
@@ -62,8 +64,8 @@ typedef struct
 	int cl;                       // current line number
 
 	// pointer to boolean stating whether to update window
-	boolean *on;
-	boolean laston; // last value of *->on.
+	bool *on;
+	bool laston; // last value of *->on.
 
 } hu_stext_t;
 
@@ -77,8 +79,8 @@ typedef struct
 	int lm;
 
 	// pointer to boolean stating whether to update window
-	boolean *on;
-	boolean laston; // last value of *->on;
+	bool *on;
+	bool laston; // last value of *->on;
 
 } hu_itext_t;
 
@@ -102,16 +104,16 @@ void
 HUlib_initTextLine(hu_textline_t *t, int x, int y, const patch_t **f, int sc);
 
 // returns success
-boolean
+bool
 HUlib_addCharToTextLine(hu_textline_t *t, char ch);
 
 // returns success
-boolean
+bool
 HUlib_delCharFromTextLine(hu_textline_t *t);
 
 // draws tline
 void
-HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor);
+HUlib_drawTextLine(hu_textline_t *l, bool drawcursor);
 
 // erases text line
 void
@@ -129,7 +131,7 @@ HUlib_initSText(hu_stext_t *s,
 	int h,
 	const patch_t **font,
 	int startchar,
-	boolean *on);
+	bool *on);
 
 // add a new line
 void
@@ -156,7 +158,7 @@ HUlib_initIText(hu_itext_t *it,
 	int y,
 	const patch_t **font,
 	int startchar,
-	boolean *on);
+	bool *on);
 
 // enforces left margin
 void
@@ -176,7 +178,7 @@ HUlib_addPrefixToIText(hu_itext_t *it,
 	char *str);
 
 // whether eaten
-boolean
+bool
 HUlib_keyInIText(hu_itext_t *it,
 	unsigned char ch);
 

@@ -17,6 +17,8 @@
 #ifndef __HU_STUFF_H__
 #define __HU_STUFF_H__
 
+#include <stdbool.h>
+
 #include "d_event.h"
 
 //
@@ -47,7 +49,7 @@ HU_Init(void);
 void
 HU_Start(void);
 
-boolean
+bool
 HU_Responder(event_t *ev);
 
 void

@@ -51,7 +51,7 @@
 //
 typedef struct
 {
-	boolean istexture;
+	bool istexture;
 	int picnum;
 	int basepic;
 	int numpics;
@@ -64,7 +64,7 @@ typedef struct
 //
 typedef struct
 {
-	boolean istexture; // if false, it is a flat
+	bool istexture; // if false, it is a flat
 	char endname[9];
 	char startname[9];
 	int speed;
@@ -116,8 +116,6 @@ animdef_t animdefs[] = {
 	{ true, "SFALL4", "SFALL1", 8 },
 	{ true, "WFALL4", "WFALL1", 8 },
 	{ true, "DBRAIN4", "DBRAIN1", 8 },
-
-	{ -1 }
 };
 
 anim_t anims[MAXANIMS];
@@ -137,7 +135,7 @@ P_InitPicAnims(void) {
 
 	//	Init animation
 	lastanim = anims;
-	for(i = 0; animdefs[i].istexture != -1; i++) {
+	for(i = 0; i < sizeof(animdefs) / sizeof(*animdefs); i++) {
 		if(animdefs[i].istexture) {
 			// different episode ?
 			if(R_CheckTextureNumForName(animdefs[i].startname) == -1)
@@ -991,7 +989,7 @@ P_PlayerInSpecialSector(player_t *player) {
 // P_UpdateSpecials
 // Animate planes, scroll walls, etc.
 //
-boolean levelTimer;
+bool levelTimer;
 int levelTimeCount;
 
 void

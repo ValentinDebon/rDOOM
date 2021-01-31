@@ -205,7 +205,7 @@ static int grid     = 0;
 
 static int leveljuststarted = 1; // kluge until AM_LevelInit() is called
 
-boolean automapactive   = false;
+bool automapactive   = false;
 static int finit_width  = SCREENWIDTH;
 static int finit_height = SCREENHEIGHT - 32;
 
@@ -218,7 +218,7 @@ static int f_w;
 static int f_h;
 
 static int lightlev; // used for funky strobing effect
-static byte *fb;     // pseudo-frame buffer
+static uint8_t *fb;     // pseudo-frame buffer
 static int amclock;
 
 static mpoint_t m_paninc;    // how far the window pans each tic (map coords)
@@ -273,10 +273,10 @@ static int followplayer = 1; // specifies whether to follow the player around
 static unsigned char cheat_amap_seq[] = { 0xb2, 0x26, 0x26, 0x2e, 0xff };
 static cheatseq_t cheat_amap          = { cheat_amap_seq, 0 };
 
-static boolean stopped = true;
+static bool stopped = true;
 
-extern boolean viewactive;
-//extern byte screens[][SCREENWIDTH*SCREENHEIGHT];
+extern bool viewactive;
+//extern uint8_t screens[][SCREENWIDTH*SCREENHEIGHT];
 
 void
 V_MarkRect(int x,
@@ -435,7 +435,7 @@ AM_changeWindowLoc(void) {
 void
 AM_initVariables(void) {
 	int pnum;
-	static event_t st_notify = { ev_keyup, AM_MSGENTERED };
+	static event_t st_notify = { ev_keyup, AM_MESSAGE_ENTERED };
 
 	automapactive = true;
 	fb            = screens[0];
@@ -522,7 +522,7 @@ AM_LevelInit(void) {
 //
 void
 AM_Stop(void) {
-	static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED };
+	static event_t st_notify = { 0, ev_keyup, AM_MESSAGE_EXITED };
 
 	AM_unloadPics();
 	automapactive = false;
@@ -572,7 +572,7 @@ AM_maxOutWindowScale(void) {
 //
 // Handle events (user inputs) in automap mode
 //
-boolean
+bool
 AM_Responder(event_t *ev) {
 
 	int rc;
@@ -796,7 +796,7 @@ AM_clearFB(int color) {
 // faster reject and precalculated slopes.  If the speed is needed,
 // use a hash algorithm to handle  the common cases.
 //
-boolean
+bool
 AM_clipMline(mline_t *ml,
 	fline_t *fl) {
 	enum {

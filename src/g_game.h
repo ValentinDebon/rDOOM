@@ -18,6 +18,8 @@
 #ifndef __G_GAME__
 #define __G_GAME__
 
+#include <stdbool.h>
+
 #include "doomdef.h"
 #include "d_event.h"
 
@@ -62,7 +64,7 @@ void
 G_PlayDemo(char *name);
 void
 G_TimeDemo(char *name);
-boolean
+bool
 G_CheckDemoStatus(void);
 
 void
@@ -75,7 +77,7 @@ G_WorldDone(void);
 
 void
 G_Ticker(void);
-boolean
+bool
 G_Responder(event_t *ev);
 
 void

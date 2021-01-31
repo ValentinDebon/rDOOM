@@ -55,9 +55,9 @@
 #include "m_menu.h"
 
 extern const patch_t *hu_font[HU_FONTSIZE];
-extern boolean message_dontfuckwithme;
+extern bool message_dontfuckwithme;
 
-extern boolean chat_on; // in heads-up code
+extern bool chat_on; // in heads-up code
 
 //
 // defaulted values
@@ -88,7 +88,7 @@ int messy;
 int messageLastMenuActive;
 
 // timed message = no input from user
-boolean messageNeedsInput;
+bool messageNeedsInput;
 
 void (*messageRoutine)(int response);
 
@@ -109,13 +109,13 @@ int saveCharIndex; // which char we're editing
 // old save description before edit
 char saveOldString[SAVESTRINGSIZE];
 
-boolean inhelpscreens;
-boolean menuactive;
+bool inhelpscreens;
+bool menuactive;
 
 #define SKULLXOFF -32
 #define LINEHEIGHT 16
 
-extern boolean sendpause;
+extern bool sendpause;
 char savegamestrings[10][SAVESTRINGSIZE];
 
 char endstring[160];
@@ -252,7 +252,7 @@ M_StringHeight(char *string);
 void
 M_StartControlPanel(void);
 void
-M_StartMessage(char *string, void *routine, boolean input);
+M_StartMessage(char *string, void *routine, bool input);
 void
 M_StopMessage(void);
 void
@@ -1127,7 +1127,7 @@ M_DrawSelCell(menu_t *menu,
 void
 M_StartMessage(char *string,
 	void *routine,
-	boolean input) {
+	bool input) {
 	messageLastMenuActive = menuactive;
 	messageToPrint        = 1;
 	messageString         = string;
@@ -1228,7 +1228,7 @@ M_WriteText(int x,
 //
 // M_Responder
 //
-boolean
+bool
 M_Responder(event_t *ev) {
 	int ch;
 	int i;

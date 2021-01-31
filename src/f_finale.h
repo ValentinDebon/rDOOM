@@ -18,14 +18,15 @@
 #ifndef __F_FINALE__
 #define __F_FINALE__
 
-#include "doomtype.h"
+#include <stdbool.h>
+
 #include "d_event.h"
 //
 // FINALE
 //
 
 // Called by main loop.
-boolean
+bool
 F_Responder(event_t *ev);
 
 // Called by main loop.

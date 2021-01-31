@@ -20,7 +20,7 @@
 #ifndef __STSTUFF_H__
 #define __STSTUFF_H__
 
-#include "doomtype.h"
+#include <stdbool.h>
 #include "d_event.h"
 
 // Size of statusbar.
@@ -34,7 +34,7 @@
 //
 
 // Called by main loop.
-boolean
+bool
 ST_Responder(event_t *ev);
 
 // Called by main loop.
@@ -43,7 +43,7 @@ ST_Ticker(void);
 
 // Called by main loop.
 void
-ST_Drawer(boolean fullscreen, boolean refresh);
+ST_Drawer(bool fullscreen, bool refresh);
 
 // Called when the console player is spawned on each level.
 void
@@ -67,8 +67,5 @@ typedef enum {
 	GetChatState
 
 } st_chatstateenum_t;
-
-boolean
-ST_Responder(event_t *ev);
 
 #endif

@@ -82,7 +82,7 @@ void
 F_StartCast(void);
 void
 F_CastTicker(void);
-boolean
+bool
 F_CastResponder(event_t *ev);
 void
 F_CastDrawer(void);
@@ -180,7 +180,7 @@ F_StartFinale(void) {
 	finalecount = 0;
 }
 
-boolean
+bool
 F_Responder(event_t *event) {
 	if(finalestage == 2)
 		return F_CastResponder(event);
@@ -240,8 +240,8 @@ extern const patch_t *hu_font[HU_FONTSIZE];
 
 void
 F_TextWrite(void) {
-	const byte *src;
-	byte *dest;
+	const uint8_t *src;
+	uint8_t *dest;
 
 	int x, y, w;
 	int count;
@@ -335,10 +335,10 @@ castinfo_t castorder[] = {
 int castnum;
 int casttics;
 state_t *caststate;
-boolean castdeath;
+bool castdeath;
 int castframes;
 int castonmelee;
-boolean castattacking;
+bool castattacking;
 
 //
 // F_StartCast
@@ -494,7 +494,7 @@ F_CastTicker(void) {
 // F_CastResponder
 //
 
-boolean
+bool
 F_CastResponder(event_t *ev) {
 	if(ev->type != ev_keydown)
 		return false;
@@ -566,7 +566,7 @@ F_CastDrawer(void) {
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	int lump;
-	boolean flip;
+	bool flip;
 	const patch_t *patch;
 
 	// erase the entire screen to a background
@@ -578,7 +578,7 @@ F_CastDrawer(void) {
 	sprdef   = &sprites[caststate->sprite];
 	sprframe = &sprdef->spriteframes[caststate->frame & FF_FRAMEMASK];
 	lump     = sprframe->lump[0];
-	flip     = (boolean)sprframe->flip[0];
+	flip     = (bool)sprframe->flip[0];
 
 	patch = W_LumpForId(lump + firstspritelump)->data;
 	if(flip)
@@ -605,7 +605,7 @@ F_DrawPatchCol(int x,
 
 	// step through the posts in a column
 	while(column->topdelta != 0xff) {
-		source = (const byte *)column + 3;
+		source = (const uint8_t *)column + 3;
 		dest   = desttop + column->topdelta * SCREENWIDTH;
 		count  = column->length;
 

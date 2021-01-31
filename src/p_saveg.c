@@ -27,7 +27,7 @@
 #include "doomstat.h"
 #include "r_state.h"
 
-byte *save_p;
+uint8_t *save_p;
 
 // Pads save_p to a 4-byte boundary
 //  so that the load/save works on SGI&Gecko.
@@ -228,7 +228,7 @@ P_ArchiveThinkers(void) {
 //
 void
 P_UnArchiveThinkers(void) {
-	byte tclass;
+	uint8_t tclass;
 	thinker_t *currentthinker;
 	thinker_t *next;
 	mobj_t *mobj;
@@ -415,7 +415,7 @@ P_ArchiveSpecials(void) {
 //
 void
 P_UnArchiveSpecials(void) {
-	byte tclass;
+	uint8_t tclass;
 	ceiling_t *ceiling;
 	vldoor_t *door;
 	floormove_t *floor;

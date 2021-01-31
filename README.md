@@ -8,7 +8,7 @@ I released the repository at the first runtime error I encountered (not segfault
 # To do list
 
 - [x] Replace Xlib by XCB.
-- [ ] Update WAD/Lumps parsing, rewrite structures for portability.
+- [x] Update WAD/Lumps parsing, rewrite structures for portability.
 - [ ] Update language system.
 - [ ] Hunt down awful C hacks.
 - [ ] Regroup global variables in "namespaces" structs.

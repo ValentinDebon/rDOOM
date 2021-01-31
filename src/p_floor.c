@@ -40,10 +40,10 @@ result_e
 T_MovePlane(struct p_sector *sector,
 	fixed_t speed,
 	fixed_t dest,
-	boolean crush,
+	bool crush,
 	int floorOrCeiling,
 	int direction) {
-	boolean flag;
+	bool flag;
 	fixed_t lastpos;
 
 	switch(floorOrCeiling) {

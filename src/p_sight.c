@@ -117,7 +117,7 @@ P_InterceptVector2(divline_t *v2,
 // Returns true
 //  if strace crosses the given subsector successfully.
 //
-boolean
+bool
 P_CrossSubsector(int num) {
 	const struct p_segment *seg;
 	struct p_line *line;
@@ -234,7 +234,7 @@ P_CrossSubsector(int num) {
 // Returns true
 //  if strace crosses the given node successfully.
 //
-boolean
+bool
 P_CrossBSPNode(int bspnum) {
 	const struct p_node *bsp;
 	int side;
@@ -273,7 +273,7 @@ P_CrossBSPNode(int bspnum) {
 //  if a straight line between t1 and t2 is unobstructed.
 // Uses REJECT.
 //
-boolean
+bool
 P_CheckSight(mobj_t *t1,
 	mobj_t *t2) {
 	int s1;

@@ -53,8 +53,8 @@ ticcmd_t localcmds[BACKUPTICS];
 
 ticcmd_t netcmds[MAXPLAYERS][BACKUPTICS];
 int nettics[MAXNETNODES];
-boolean nodeingame[MAXNETNODES];   // set false as nodes leave game
-boolean remoteresend[MAXNETNODES]; // set when local needs tics
+bool nodeingame[MAXNETNODES];   // set false as nodes leave game
+bool remoteresend[MAXNETNODES]; // set when local needs tics
 int resendto[MAXNETNODES];         // set when remote needs tics
 int resendcount[MAXNETNODES];
 
@@ -73,7 +73,7 @@ G_BuildTiccmd(ticcmd_t *cmd);
 void
 D_DoAdvanceDemo(void);
 
-boolean reboundpacket;
+bool reboundpacket;
 doomdata_t reboundstore;
 
 //
@@ -161,7 +161,7 @@ HSendPacket(int node,
 		fprintf(debugfile, "send (%i + %i, R %i) [%i] ", ExpandTics(netbuffer->starttic), netbuffer->numtics, realretrans, doomcom->datalength);
 
 		for(i = 0; i < doomcom->datalength; i++)
-			fprintf(debugfile, "%i ", ((byte *)netbuffer)[i]);
+			fprintf(debugfile, "%i ", ((uint8_t *)netbuffer)[i]);
 
 		fprintf(debugfile, "\n");
 	}
@@ -173,7 +173,7 @@ HSendPacket(int node,
 // HGetPacket
 // Returns false if no packet is waiting
 //
-boolean
+bool
 HGetPacket(void) {
 	if(reboundpacket) {
 		*netbuffer          = reboundstore;
@@ -221,7 +221,7 @@ HGetPacket(void) {
 			fprintf(debugfile, "get %i = (%i + %i, R %i)[%i] ", doomcom->remotenode, ExpandTics(netbuffer->starttic), netbuffer->numtics, realretrans, doomcom->datalength);
 
 			for(i = 0; i < doomcom->datalength; i++)
-				fprintf(debugfile, "%i ", ((byte *)netbuffer)[i]);
+				fprintf(debugfile, "%i ", ((uint8_t *)netbuffer)[i]);
 			fprintf(debugfile, "\n");
 		}
 	}
@@ -430,7 +430,7 @@ CheckAbort(void) {
 void
 D_ArbitrateNetStart(void) {
 	int i;
-	boolean gotinfo[MAXNETNODES];
+	bool gotinfo[MAXNETNODES];
 
 	autostart = true;
 	memset(gotinfo, 0, sizeof(gotinfo));
@@ -575,7 +575,7 @@ int frameon;
 int frameskip[4];
 int oldnettics;
 
-extern boolean advancedemo;
+extern bool advancedemo;
 
 void
 TryRunTics(void) {

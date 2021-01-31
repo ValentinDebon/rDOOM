@@ -18,11 +18,13 @@
 #ifndef __P_INTER__
 #define __P_INTER__
 
+#include <stdbool.h>
+
 #ifdef __GNUG__
 #pragma interface
 #endif
 
-boolean
+bool
 P_GivePower(player_t *, int);
 
 #endif

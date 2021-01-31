@@ -58,7 +58,7 @@ int clipammo[NUMAMMO] = { 10, 4, 20, 1 };
 // Returns false if the ammo can't be picked up at all
 //
 
-boolean
+bool
 P_GiveAmmo(player_t *player,
 	ammotype_t ammo,
 	int num) {
@@ -142,12 +142,12 @@ P_GiveAmmo(player_t *player,
 // P_GiveWeapon
 // The weapon name may have a MF_DROPPED flag ored in.
 //
-boolean
+bool
 P_GiveWeapon(player_t *player,
 	weapontype_t weapon,
-	boolean dropped) {
-	boolean gaveammo;
-	boolean gaveweapon;
+	bool dropped) {
+	bool gaveammo;
+	bool gaveweapon;
 
 	if(netgame
 		&& (deathmatch != 2)
@@ -195,7 +195,7 @@ P_GiveWeapon(player_t *player,
 // P_GiveBody
 // Returns false if the body isn't needed at all
 //
-boolean
+bool
 P_GiveBody(player_t *player,
 	int num) {
 	if(player->health >= MAXHEALTH)
@@ -214,7 +214,7 @@ P_GiveBody(player_t *player,
 // Returns false if the armor is worse
 // than the current armor.
 //
-boolean
+bool
 P_GiveArmor(player_t *player,
 	int armortype) {
 	int hits;
@@ -245,7 +245,7 @@ P_GiveCard(player_t *player,
 //
 // P_GivePower
 //
-boolean
+bool
 P_GivePower(player_t *player,
 	int /*powertype_t*/ power) {
 	if(power == pw_invulnerability) {

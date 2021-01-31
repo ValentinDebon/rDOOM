@@ -20,6 +20,8 @@
 #ifndef __P_LOCAL__
 #define __P_LOCAL__
 
+#include <stdbool.h>
+
 #include "d_think.h"
 #include "d_player.h"
 #include "r_defs.h"
@@ -292,7 +294,7 @@ P_SpawnMobj(fixed_t x,
 
 void
 P_RemoveMobj(mobj_t *th);
-boolean
+bool
 P_SetMobjState(mobj_t *mobj, statenum_t state);
 void
 P_MobjThinker(mobj_t *mobj);
@@ -327,7 +329,7 @@ typedef struct
 typedef struct
 {
 	fixed_t frac; // along trace line
-	boolean isaline;
+	bool isaline;
 	union {
 		mobj_t *thing;
 		struct p_line *line;
@@ -339,7 +341,7 @@ typedef struct
 extern intercept_t intercepts[MAXINTERCEPTS];
 extern intercept_t *intercept_p;
 
-typedef boolean (*traverser_t)(intercept_t *in);
+typedef bool (*traverser_t)(intercept_t *in);
 
 fixed_t
 P_AproxDistance(fixed_t dx, fixed_t dy);
@@ -362,10 +364,10 @@ extern fixed_t lowfloor;
 void
 P_LineOpening(const struct p_line *linedef);
 
-boolean
-P_BlockLinesIterator(int x, int y, boolean (*func)(struct p_line *));
-boolean
-P_BlockThingsIterator(int x, int y, boolean (*func)(mobj_t *));
+bool
+P_BlockLinesIterator(int x, int y, bool (*func)(struct p_line *));
+bool
+P_BlockThingsIterator(int x, int y, bool (*func)(mobj_t *));
 
 #define PT_ADDLINES 1
 #define PT_ADDTHINGS 2
@@ -373,13 +375,13 @@ P_BlockThingsIterator(int x, int y, boolean (*func)(mobj_t *));
 
 extern divline_t trace;
 
-boolean
+bool
 P_PathTraverse(fixed_t x1,
 	fixed_t y1,
 	fixed_t x2,
 	fixed_t y2,
 	int flags,
-	boolean (*trav)(intercept_t *));
+	bool (*trav)(intercept_t *));
 
 void
 P_UnsetThingPosition(mobj_t *thing);
@@ -392,27 +394,27 @@ P_SetThingPosition(mobj_t *thing);
 
 // If "floatok" true, move would be ok
 // if within "tmfloorz - tmceilingz".
-extern boolean floatok;
+extern bool floatok;
 extern fixed_t tmfloorz;
 extern fixed_t tmceilingz;
 
 extern const struct p_line *ceilingline;
 
-boolean
+bool
 P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y);
-boolean
+bool
 P_TryMove(mobj_t *thing, fixed_t x, fixed_t y);
-boolean
+bool
 P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y);
 void
 P_SlideMove(mobj_t *mo);
-boolean
+bool
 P_CheckSight(mobj_t *t1, mobj_t *t2);
 void
 P_UseLines(player_t *player);
 
-boolean
-P_ChangeSector(const struct p_sector *sector, boolean crunch);
+bool
+P_ChangeSector(const struct p_sector *sector, bool crunch);
 
 extern mobj_t *linetarget; // who got hit (or NULL)
 

@@ -61,7 +61,7 @@ extern const patch_t *hu_font[HU_FONTSIZE];
 int
 M_DrawText(int x,
 	int y,
-	boolean direct,
+	bool direct,
 	char *string) {
 	int c;
 	int w;
@@ -94,7 +94,7 @@ M_DrawText(int x,
 #define O_BINARY 0
 #endif
 
-boolean
+bool
 M_WriteFile(char const *name,
 	void *source,
 	int length) {
@@ -120,10 +120,10 @@ M_WriteFile(char const *name,
 //
 int
 M_ReadFile(char const *name,
-	byte **buffer) {
+	uint8_t **buffer) {
 	int handle, count, length;
 	struct stat fileinfo;
-	byte *buf;
+	uint8_t *buf;
 
 	handle = open(name, O_RDONLY | O_BINARY, 0666);
 	if(handle == -1)
@@ -303,7 +303,7 @@ M_SaveDefaults(void) {
 //
 // M_LoadDefaults
 //
-extern byte scantokey[128];
+extern uint8_t scantokey[128];
 
 void
 M_LoadDefaults(void) {
@@ -314,7 +314,7 @@ M_LoadDefaults(void) {
 	char strparm[100];
 	char *newstring;
 	int parm;
-	boolean isstring;
+	bool isstring;
 
 	// set everything to base values
 	numdefaults = sizeof(defaults) / sizeof(defaults[0]);
@@ -405,14 +405,14 @@ typedef struct
 //
 void
 WritePCXfile(char *filename,
-	byte *data,
+	uint8_t *data,
 	int width,
 	int height,
-	const byte *palette) {
+	const uint8_t *palette) {
 	int i;
 	int length;
 	pcx_t *pcx;
-	byte *pack;
+	uint8_t *pack;
 
 	pcx = Z_Malloc(width * height * 2 + 1000, PU_STATIC, NULL);
 
@@ -450,7 +450,7 @@ WritePCXfile(char *filename,
 		*pack++ = *palette++;
 
 	// write output file
-	length = pack - (byte *)pcx;
+	length = pack - (uint8_t *)pcx;
 	M_WriteFile(filename, pcx, length);
 
 	Z_Free(pcx);
@@ -462,7 +462,7 @@ WritePCXfile(char *filename,
 void
 M_ScreenShot(void) {
 	int i;
-	byte *linear;
+	uint8_t *linear;
 	char lbmname[12];
 
 	// munge planar buffer to linear

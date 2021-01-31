@@ -49,7 +49,7 @@ I_Init(void) {
 	I_InitXCB();
 }
 
-byte *
+uint8_t *
 I_ZoneBase(int *size) {
 
 	*size = mb_used * 1024 * 1024;
@@ -111,7 +111,7 @@ I_Quit(void) {
 	exit(EXIT_SUCCESS);
 }
 
-byte *
+uint8_t *
 I_AllocLow(int length) {
 	return calloc(length, 1);
 }
@@ -125,7 +125,7 @@ I_Tactile(int on,
 
 noreturn void
 I_Error(char *error, ...) {
-	extern boolean demorecording;
+	extern bool demorecording;
 	va_list ap;
 
 	va_start(ap, error);
