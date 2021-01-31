@@ -91,7 +91,6 @@ R_RenderMaskedSegRange(drawseg_t *ds,
 	int lightnum;
 	int texnum;
 
-	puts("R_RenderMaskedSegRange");
 	// Calculate light table.
 	// Use different light tables
 	//   for horizontal / vertical / diagonal. Diagonal?

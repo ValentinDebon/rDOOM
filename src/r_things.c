@@ -318,7 +318,6 @@ R_DrawMaskedColumn(column_t *column) {
 
 	basetexturemid = dc_texturemid;
 
-	puts("R_DrawMaskedColumn");
 	while(column->topdelta != 255) {
 		// calculate unclipped screen coordinates
 		//  for post
@@ -762,7 +761,6 @@ R_DrawSprite(vissprite_t *spr) {
 	fixed_t lowscale;
 	int silhouette;
 
-	puts("R_DrawSprite");
 	for(x = spr->x1; x <= spr->x2; x++)
 		clipbot[x] = cliptop[x] = -2;
 
@@ -855,8 +853,6 @@ R_DrawMasked(void) {
 	vissprite_t *spr;
 	drawseg_t *ds;
 
-	puts("R_DrawMasked");
-
 	R_SortVisSprites();
 
 	if(vissprite_p > vissprites) {
@@ -870,12 +866,15 @@ R_DrawMasked(void) {
 	}
 
 	// render any remaining masked mid textures
-	for(ds = ds_p - 1; ds >= drawsegs; ds--)
-		if(ds->maskedtexturecol)
+	for(ds = ds_p - 1; ds >= drawsegs; ds--) {
+		if(ds->maskedtexturecol) {
 			R_RenderMaskedSegRange(ds, ds->x1, ds->x2);
+		}
+	}
 
 	// draw the psprites on top of everything
 	//  but does not draw on side views
-	if(!viewangleoffset)
+	if(!viewangleoffset) {
 		R_DrawPlayerSprites();
+	}
 }

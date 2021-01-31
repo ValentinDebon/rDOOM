@@ -275,7 +275,7 @@ P_LoadLines(lumpId_t id) {
 
 static void
 P_LoadSides(lumpId_t id) {
-	const struct w_lump * const lump   = W_LumpForId(id);
+	const struct w_lump * const lump = W_LumpForId(id);
 	const struct w_mapSide *map_side = lump->data;
 
 	p_level.sides_count = lump->size / sizeof(*map_side);
@@ -289,8 +289,8 @@ P_LoadSides(lumpId_t id) {
 		side->offset_y = FixedFor(LE_S16(map_side->offset_y));
 
 		side->top_texture    = R_TextureIdForName(map_side->top_texture);
-		side->middle_texture = R_TextureIdForName(map_side->middle_texture);
 		side->bottom_texture = R_TextureIdForName(map_side->bottom_texture);
+		side->middle_texture = R_TextureIdForName(map_side->middle_texture);
 
 		side->sector = p_level.sectors + LE_U16(map_side->faced_sector);
 	}

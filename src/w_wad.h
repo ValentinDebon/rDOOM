@@ -88,8 +88,8 @@ struct WAD w_mapSide {
 	int16_t offset_x;
 	int16_t offset_y;
 	char    top_texture[8];
-	char    middle_texture[8];
 	char    bottom_texture[8];
+	char    middle_texture[8];
 	int16_t faced_sector;
 };
 

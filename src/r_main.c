@@ -746,8 +746,6 @@ R_SetupFrame(player_t *player) {
 //
 void
 R_RenderPlayerView(player_t *player) {
-	puts("R_RenderPlayerView");
-
 	R_SetupFrame(player);
 
 	// Clear buffers.
