@@ -26,9 +26,6 @@
 #pragma interface
 #endif
 
-#define MAXWADFILES 20
-extern char *wadfiles[MAXWADFILES];
-
 void
 D_AddFile(char *file);
 

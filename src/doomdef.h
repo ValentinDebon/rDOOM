@@ -30,7 +30,7 @@ enum { VERSION = 110 };
 
 // Game mode handling - identify IWAD version
 //  to handle IWAD dependend animations etc.
-typedef enum {
+typedef enum d_gameMode {
 	shareware,  // DOOM 1 shareware, E1, M9
 	registered, // DOOM 1 registered, E3, M27
 	commercial, // DOOM 2 retail, E1 M34

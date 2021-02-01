@@ -31,6 +31,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <assert.h>
 #endif
 
 #include "doomdef.h"
@@ -79,6 +80,7 @@
 void
 D_DoomLoop(void);
 
+#define MAXWADFILES 20
 char *wadfiles[MAXWADFILES];
 
 int devparm;     // started game with -devparm
@@ -498,64 +500,46 @@ D_AddFile(char *file) {
 	wadfiles[numwadfiles] = newfile;
 }
 
-//
-// IdentifyVersion
-// Checks availability of IWAD files by name,
-// to determine whether registered/commercial features
-// should be executed (notably loading PWAD's).
-//
-void
-IdentifyVersion(void) {
+static bool
+D_FindVersion(const char *doomwaddir, size_t doomwaddirlen,
+	const char *wadfile, enum d_gameMode versionmode) {
+	const size_t wadfilelen = strlen(wadfile);
+	char path[doomwaddirlen + wadfilelen + 1];
 
-	char *doom1wad;
-	char *doomwad;
-	char *doomuwad;
-	char *doom2wad;
+	strncpy(path, doomwaddir, doomwaddirlen);
+	path[doomwaddirlen] = '/';
+	strncpy(path + doomwaddirlen + 1, wadfile, wadfilelen + 1);
 
-	char *doom2fwad;
-	char *plutoniawad;
-	char *tntwad;
+	const bool found = access(path, R_OK) == 0;
 
-#ifdef NORMALUNIX
-	char *home;
-	char *doomwaddir;
-	doomwaddir = getenv("DOOMWADDIR");
-	if(!doomwaddir)
+	if(found) {
+		gamemode = versionmode;
+		D_AddFile(path);
+	}
+
+	return found;
+}
+
+/*
+ * D_IdentifyVersion
+ * Checks availability of IWAD files by name,
+ * to determine whether registered/commercial features
+ * should be executed (notably loading PWAD's).
+ */
+static void
+D_IdentifyVersion(void) {
+	const char *doomwaddir = getenv("DOOMWADDIR");
+	if(doomwaddir == NULL) {
 		doomwaddir = ".";
+	}
 
-	// Commercial.
-	doom2wad = malloc(strlen(doomwaddir) + 1 + 9 + 1);
-	sprintf(doom2wad, "%s/doom2.wad", doomwaddir);
-
-	// Retail.
-	doomuwad = malloc(strlen(doomwaddir) + 1 + 8 + 1);
-	sprintf(doomuwad, "%s/doomu.wad", doomwaddir);
-
-	// Registered.
-	doomwad = malloc(strlen(doomwaddir) + 1 + 8 + 1);
-	sprintf(doomwad, "%s/doom.wad", doomwaddir);
-
-	// Shareware.
-	doom1wad = malloc(strlen(doomwaddir) + 1 + 9 + 1);
-	sprintf(doom1wad, "%s/doom1.wad", doomwaddir);
-
-	// Bug, dear Shawn.
-	// Insufficient malloc, caused spurious realloc errors.
-	plutoniawad = malloc(strlen(doomwaddir) + 1 + /*9*/ 12 + 1);
-	sprintf(plutoniawad, "%s/plutonia.wad", doomwaddir);
-
-	tntwad = malloc(strlen(doomwaddir) + 1 + 9 + 1);
-	sprintf(tntwad, "%s/tnt.wad", doomwaddir);
-
-	// French stuff.
-	doom2fwad = malloc(strlen(doomwaddir) + 1 + 10 + 1);
-	sprintf(doom2fwad, "%s/doom2f.wad", doomwaddir);
-
-	home = getenv("HOME");
-	if(!home)
+	const char *home = getenv("HOME");
+	if(home == NULL) {
 		I_Error("Please set $HOME to your home directory");
-	sprintf(basedefault, "%s/.doomrc", home);
-#endif
+	}
+
+	/* TODO: Handle basedefault dynamically */
+	snprintf(basedefault, sizeof(basedefault), "%s/.doomrc", home);
 
 	if(M_CheckParm("-shdev")) {
 		gamemode = shareware;
@@ -581,72 +565,51 @@ IdentifyVersion(void) {
 	if(M_CheckParm("-comdev")) {
 		gamemode = commercial;
 		devparm  = true;
-		/* I don't bother
-	if(plutonia)
-	    D_AddFile (DEVDATA"plutonia.wad");
-	else if(tnt)
-	    D_AddFile (DEVDATA"tnt.wad");
-	else*/
 		D_AddFile(DEVDATA "doom2.wad");
-
 		D_AddFile(DEVMAPS "cdata/texture1.lmp");
 		D_AddFile(DEVMAPS "cdata/pnames.lmp");
 		strcpy(basedefault, DEVDATA "default.cfg");
 		return;
 	}
 
-	if(!access(doom2fwad, R_OK)) {
-		gamemode = commercial;
-		// C'est ridicule!
-		// Let's handle languages in config files, okay?
+	const size_t doomwaddirlen = strlen(doomwaddir);
+
+	if(D_FindVersion(doomwaddir, doomwaddirlen, "doom2f.wad", commercial)) {
+		/* C'est ridicule! */
+		/* Let's handle languages in config files, okay? */
 		language = french;
 		printf("French version\n");
-		D_AddFile(doom2fwad);
 		return;
 	}
 
-	if(!access(doom2wad, R_OK)) {
-		gamemode = commercial;
-		D_AddFile(doom2wad);
+	if(D_FindVersion(doomwaddir, doomwaddirlen, "doom2.wad", commercial)) {
 		return;
 	}
 
-	if(!access(plutoniawad, R_OK)) {
-		gamemode = commercial;
-		D_AddFile(plutoniawad);
+	if(D_FindVersion(doomwaddir, doomwaddirlen, "plutonia.wad", commercial)) {
 		return;
 	}
 
-	if(!access(tntwad, R_OK)) {
-		gamemode = commercial;
-		D_AddFile(tntwad);
+	if(D_FindVersion(doomwaddir, doomwaddirlen, "tnt.wad", commercial)) {
 		return;
 	}
 
-	if(!access(doomuwad, R_OK)) {
-		gamemode = retail;
-		D_AddFile(doomuwad);
+	if(D_FindVersion(doomwaddir, doomwaddirlen, "doomu.wad", retail)) {
 		return;
 	}
 
-	if(!access(doomwad, R_OK)) {
-		gamemode = registered;
-		D_AddFile(doomwad);
+	if(D_FindVersion(doomwaddir, doomwaddirlen, "doom.wad", registered)) {
 		return;
 	}
 
-	if(!access(doom1wad, R_OK)) {
-		gamemode = shareware;
-		D_AddFile(doom1wad);
+	if(D_FindVersion(doomwaddir, doomwaddirlen, "doom1.wad", shareware)) {
 		return;
 	}
 
 	printf("Game mode indeterminate.\n");
 	gamemode = indetermined;
 
-	// We don't abort. Let's see what the PWAD contains.
-	//exit(1);
-	//I_Error ("Game mode indeterminate\n");
+	/* We don't abort. Let's see what the PWAD contains. */
 }
 
 //
@@ -727,7 +690,7 @@ D_DoomMain(void) {
 
 	FindResponseFile();
 
-	IdentifyVersion();
+	D_IdentifyVersion();
 
 	setbuf(stdout, NULL);
 	modifiedgame = false;

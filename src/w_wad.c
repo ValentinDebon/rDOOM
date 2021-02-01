@@ -88,7 +88,10 @@ W_InitFile(const char *filename, struct i_fileMap *filemap) {
 
 static void
 W_Shutdown(void) {
-	while(w_wad.filemaps_count-- != 0) {
+	while(w_wad.filemaps_count != 0) {
+
+		w_wad.filemaps_count--;
+
 		I_FileUnMap(w_wad.filemaps + w_wad.filemaps_count);
 	}
 	free(w_wad.filemaps);
@@ -111,10 +114,11 @@ W_Init(const char * const *files) {
 		}
 
 		while(files != filesend) {
-
-			W_InitFile(*files, filesend - files + w_wad.filemaps);
+			const char *filename = *files;
 
 			files++;
+
+			W_InitFile(filename, filesend - files + w_wad.filemaps);
 		}
 	} else {
 		I_Error("W_Init: No files found");
