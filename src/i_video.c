@@ -56,9 +56,10 @@ I_InitGraphics(void) {
 		I_Error("I_InitGraphics: Unsupported class of visual\n");
 	}
 
-	/* Code doesn't handle (yet) non byte based rgb values */
-	if(i_xcb.visualtype->bits_per_rgb_value != 8) {
-		I_Error("I_InitGraphics: Unsupported %d bits rgb value", i_xcb.visualtype->bits_per_rgb_value);
+	/* Code doesn't handle (yet) non byte based rgb values in pict format */
+	/* Visual bits are no problems as long as the image format is correct */
+	if((i_xcb.format->bits_per_pixel & 7) != 0) {
+		I_Error("I_InitGraphics: Unsupported %d bits per pixel", i_xcb.format->bits_per_pixel);
 	}
 
 	/* Keep it somewhere, need it everywhere */
