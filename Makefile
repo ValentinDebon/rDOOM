@@ -32,6 +32,7 @@ OBJECTS= \
 	$(BUILD)/i_system.o \
 	$(BUILD)/i_video.o \
 	$(BUILD)/i_xcb.o \
+	$(BUILD)/l_strings.o \
 	$(BUILD)/m_argv.o \
 	$(BUILD)/m_bbox.o \
 	$(BUILD)/m_cheat.o \
