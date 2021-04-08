@@ -559,7 +559,7 @@ I_PostXCBEvent(const xcb_generic_event_t *generic_event) {
 				xcb_grab_pointer_cookie_t grab_pointer_cookie
 					= xcb_grab_pointer(i_xcb.connection, 1 /* owner events */, i_xcb.window.drawable,
 						XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION,
-						XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, i_xcb.window.drawable,
+						XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, i_xcb.screen->root,
 						XCB_CURSOR_NONE, XCB_CURRENT_TIME);
 
 				/* - Grab Pointer reply */
