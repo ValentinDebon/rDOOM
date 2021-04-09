@@ -14,6 +14,8 @@ find_library(XCB_RENDER_LIBRARY xcb-render REQUIRED)
 
 add_definitions(-DNORMALUNIX -DLINUX)
 
+include_directories(src)
+
 file(GLOB RDOOM_SOURCES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/*.c)
 add_executable(rdoom ${RDOOM_SOURCES})
 
