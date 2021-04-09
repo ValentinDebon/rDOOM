@@ -20,6 +20,7 @@
 #include "doomdef.h"
 
 #include "i_system.h"
+#include "i_error.h"
 #include "p_local.h"
 
 // State.

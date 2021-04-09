@@ -27,6 +27,7 @@
 #include "m_swap.h"
 
 #include "i_system.h"
+#include "i_error.h"
 
 #include "w_wad.h"
 

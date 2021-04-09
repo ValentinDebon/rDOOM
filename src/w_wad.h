@@ -17,8 +17,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __W_WAD__
-#define __W_WAD__
+#ifndef RDOOM_W_WAD_H
+#define RDOOM_W_WAD_H
 
 /*
  * The WAD file module was revised to support file mappings,
@@ -32,8 +32,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
-#include "i_system.h"
 
 #if __has_attribute(packed)
 #define WAD __attribute__((packed))
@@ -228,4 +226,5 @@ W_LumpForId(lumpId_t id);
 const struct w_lump *
 W_LumpForName(const char *name);
 
+/* RDOOM_W_WAD_H */
 #endif

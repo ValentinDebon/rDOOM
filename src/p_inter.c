@@ -26,6 +26,7 @@
 
 #include "m_random.h"
 #include "i_system.h"
+#include "i_error.h"
 
 #include "am_map.h"
 

@@ -20,6 +20,7 @@
 //-----------------------------------------------------------------------------
 
 #include "i_system.h"
+#include "i_error.h"
 #include "r_local.h"
 
 #include "doomdef.h"

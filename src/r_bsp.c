@@ -22,6 +22,7 @@
 #include "m_bbox.h"
 
 #include "i_system.h"
+#include "i_error.h"
 
 #include "r_main.h"
 #include "r_plane.h"

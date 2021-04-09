@@ -17,16 +17,10 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
-#include <stddef.h>
 #include <stdint.h>
 #include <stdnoreturn.h>
 
 #include "d_ticcmd.h"
-
-struct i_fileMap {
-	void *address;
-	size_t size;
-};
 
 // Called by DoomMain.
 void
@@ -85,14 +79,5 @@ I_AllocLow(int length);
 
 void
 I_Tactile(int on, int off, int total);
-
-noreturn void
-I_Error(char *error, ...);
-
-void
-I_FileMap(const char *filename, struct i_fileMap *filemap);
-
-void
-I_FileUnMap(struct i_fileMap *filemap);
 
 #endif

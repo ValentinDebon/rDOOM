@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------------
 
 #include "i_system.h"
+#include "i_error.h"
 #include "doomdef.h"
 #include "p_local.h"
 

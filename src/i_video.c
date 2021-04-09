@@ -21,6 +21,7 @@
 
 #include "v_video.h"
 #include "i_system.h"
+#include "i_error.h"
 #include "i_xcb.h"
 
 #include <stdlib.h>

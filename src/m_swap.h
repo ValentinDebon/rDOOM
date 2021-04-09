@@ -17,8 +17,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __M_SWAP__
-#define __M_SWAP__
+#ifndef RDOOM_M_SWAP_H
+#define RDOOM_M_SWAP_H
 
 #include <stdint.h>
 
@@ -52,4 +52,5 @@ SwapU32(uint32_t value);
 
 #endif
 
+/* RDOOM_M_SWAP_H */
 #endif

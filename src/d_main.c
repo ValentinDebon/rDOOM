@@ -55,6 +55,7 @@
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
+#include "i_error.h"
 
 #include "g_game.h"
 

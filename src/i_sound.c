@@ -19,6 +19,7 @@
 #include "i_sound.h"
 
 #include "i_system.h"
+#include "i_error.h"
 #include "m_swap.h"
 #include "w_wad.h"
 

@@ -16,8 +16,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef L_STRINGS_H
-#define L_STRINGS_H
+#ifndef RDOOM_L_STRINGS_H
+#define RDOOM_L_STRINGS_H
 
 enum l_language {
 
@@ -347,5 +347,5 @@ L_SetCurrentLanguage(enum l_language language);
 const char *
 L_String(enum l_string identifier);
 
-/* L_STRINGS_H */
+/* RDOOM_L_STRINGS_H */
 #endif

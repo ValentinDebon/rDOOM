@@ -21,6 +21,7 @@
 
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_error.h"
 
 #ifdef __GNUG__
 #pragma implementation "m_fixed.h"

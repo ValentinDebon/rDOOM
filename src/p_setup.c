@@ -22,6 +22,7 @@
 #include "p_local.h"
 
 #include "doomstat.h"
+#include "i_error.h"
 #include "m_fixed.h"
 #include "m_swap.h"
 #include "m_bbox.h"

@@ -19,7 +19,8 @@
 
 #include "w_wad.h"
 
-#include "i_system.h"
+#include "i_filemap.h"
+#include "i_error.h"
 #include "m_swap.h"
 
 #include <stdio.h>
@@ -88,12 +89,14 @@ W_InitFile(const char *filename, struct i_fileMap *filemap) {
 
 static void
 W_Shutdown(void) {
+
 	while(w_wad.filemaps_count != 0) {
 
 		w_wad.filemaps_count--;
 
 		I_FileUnMap(w_wad.filemaps + w_wad.filemaps_count);
 	}
+
 	free(w_wad.filemaps);
 	free(w_wad.lumps);
 }
@@ -153,6 +156,7 @@ W_GetIdForName(const char *name) {
 
 const struct w_lump *
 W_LumpForId(lumpId_t id) {
+
 	if(id < 0 || id >= w_wad.lumps_count) {
 		I_Error("W_LumpForId: Invalid lump id '%d'", id);
 	}

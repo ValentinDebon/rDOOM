@@ -22,6 +22,7 @@
 
 #include "m_menu.h"
 #include "i_system.h"
+#include "i_error.h"
 #include "i_video.h"
 #include "i_net.h"
 #include "g_game.h"

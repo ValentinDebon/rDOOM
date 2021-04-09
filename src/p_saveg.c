@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include "i_system.h"
+#include "i_error.h"
 #include "z_zone.h"
 #include "p_local.h"
 

@@ -15,3 +15,11 @@ I released the repository at the first runtime error I encountered (not segfault
 - [ ] Implement Pulseaudio-backed audio.
 - [ ] Implement remote rendering system.
 
+# Tools
+
+To assist the port and build, several utilities are planned to introspect/port wad contents and generate build files.
+
+- [x] readwad: Parse and list WAD content
+- [ ] wad2png: Extract textures from WAD files to PNG.
+- [ ] genlang: Create source file from a translation listing.
+

@@ -55,3 +55,10 @@ Another warning concerning "Demo is from a different game version" was here, not
 I modified the condition from different to greater than engine one. Didn't seem to break a thing, allows them to run.
 Removed `htonl` and `htons` macros, redundant with `<arpa/inet.h>` ones.
 
+# Build system and utilities
+Implementing runtime localization, I thought it would be more interesting to create the source files from
+translation dictionaries (like strings files in macOS' Xcode). I also wanted to sync the readwad with my new wad support.
+Managing portable Makefiles will be a pain. I'll use CMake to port the build system (and maybe add a generic Makefile just for rDOOM).
+These new ideas will be implemented in the `tools/` directory. And use rDOOM's headers and C files to stay coherent. Will also create a utility
+to extract textures from a WAD file if libpng is available.
+
