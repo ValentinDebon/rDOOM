@@ -14,14 +14,29 @@ find_library(XCB_RENDER_LIBRARY xcb-render REQUIRED)
 
 add_definitions(-DNORMALUNIX -DLINUX)
 
-include_directories(src)
+include_directories(src ${PROJECT_BINARY_DIR})
+
+macro(add_language language)
+	add_custom_command(
+		OUTPUT "l_${language}.inc"
+		COMMAND genlang -o "l_${language}.inc" "${PROJECT_SOURCE_DIR}/langs/${language}.lang"
+		DEPENDS "langs/${language}.lang"
+	)
+	list(APPEND RDOOM_LANGS "l_${language}.inc")
+endmacro()
+
+add_language(english)
+add_language(french)
 
 file(GLOB RDOOM_SOURCES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/*.c)
-add_executable(rdoom ${RDOOM_SOURCES})
+add_executable(rdoom ${RDOOM_SOURCES} ${RDOOM_LANGS})
 
 file(GLOB READWAD_SOURCES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/tools/readwad/*.c)
 list(APPEND READWAD_SOURCES src/w_wad.c src/i_filemap.c src/i_error.c src/m_swap.c)
 add_executable(readwad ${READWAD_SOURCES})
+
+file(GLOB GENLANG_SOURCES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/tools/genlang/*.c)
+add_executable(genlang ${GENLANG_SOURCES})
 
 target_link_libraries(rdoom PUBLIC ${XCB_LIBRARY} ${XCB_RENDER_LIBRARY})
 

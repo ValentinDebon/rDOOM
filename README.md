@@ -21,5 +21,5 @@ To assist the port and build, several utilities are planned to introspect/port w
 
 - [x] readwad: Parse and list WAD content
 - [ ] wad2png: Extract textures from WAD files to PNG.
-- [ ] genlang: Create source file from a translation listing.
+- [x] genlang: Create source file from a translation listing.
 

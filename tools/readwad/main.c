@@ -94,7 +94,7 @@ readwad_show_lump(const char *name, const struct readwad_args *args) {
 
 static void
 readwad_usage(const char *readwad_name) {
-	fprintf(stderr, "usage: %s wadfile -i <wadfile> <lump name>...\n", readwad_name);
+	fprintf(stderr, "usage: %s -i <wadfile> <lump name>...\n", readwad_name);
 	exit(EXIT_FAILURE);
 }
 
