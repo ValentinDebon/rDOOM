@@ -36,7 +36,7 @@
 #include "r_state.h"
 
 // Data.
-#include "dstrings.h"
+#include "l_strings.h"
 
 #include "am_map.h"
 
@@ -642,20 +642,20 @@ AM_Responder(event_t *ev) {
 		case AM_FOLLOWKEY:
 			followplayer = !followplayer;
 			f_oldloc.x   = MAXINT;
-			plr->message = followplayer ? AMSTR_FOLLOWON : AMSTR_FOLLOWOFF;
+			plr->message = L_String(STRING_AM_FOLLOWON + (followplayer == 0));
 			break;
 		case AM_GRIDKEY:
 			grid         = !grid;
-			plr->message = grid ? AMSTR_GRIDON : AMSTR_GRIDOFF;
+			plr->message = L_String(STRING_AM_GRIDON + (grid == 0));
 			break;
 		case AM_MARKKEY:
-			sprintf(buffer, "%s %d", AMSTR_MARKEDSPOT, markpointnum);
+			snprintf(buffer, sizeof(buffer) - 1, "%s %d", L_String(STRING_AM_MARKEDSPOT), markpointnum);
 			plr->message = buffer;
 			AM_addMark();
 			break;
 		case AM_CLEARMARKKEY:
 			AM_clearMarks();
-			plr->message = AMSTR_MARKSCLEARED;
+			plr->message = L_String(STRING_AM_MARKSCLEARED);
 			break;
 		default:
 			cheatstate = 0;

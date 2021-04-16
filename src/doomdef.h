@@ -50,15 +50,6 @@ typedef enum {
 
 } GameMission_t;
 
-// Identify language to use, software localization.
-typedef enum {
-	english,
-	french,
-	german,
-	unknown
-
-} Language_t;
-
 // If rangecheck is undefined,
 // most parameter validation debugging code will not be compiled
 #define RANGECHECK
@@ -267,8 +258,6 @@ typedef enum {
 //#include "doomdata.h"
 
 // All important printed strings.
-// Language selection (message strings).
-//#include "dstrings.h"
 
 // Player is a special actor.
 //struct player_s;

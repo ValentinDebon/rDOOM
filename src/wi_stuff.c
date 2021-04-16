@@ -1480,14 +1480,10 @@ WI_loadData(void) {
 	// "secret"
 	sp_secret = W_LumpForName("WISCRT2")->data;
 
-	// Yuck.
-	if(french) {
-		// "items"
-		if(netgame && !deathmatch)
-			items = W_LumpForName("WIOBJ")->data;
-		else
-			items = W_LumpForName("WIOSTI")->data;
-	} else
+	// "items"
+	if(netgame && !deathmatch)
+		items = W_LumpForName("WIOBJ")->data;
+	else
 		items = W_LumpForName("WIOSTI")->data;
 
 	// "frgs"

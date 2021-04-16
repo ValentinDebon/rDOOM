@@ -19,7 +19,6 @@
 
 // Data.
 #include "doomdef.h"
-#include "dstrings.h"
 #include "sounds.h"
 
 #include "doomstat.h"
@@ -27,6 +26,8 @@
 #include "m_random.h"
 #include "i_system.h"
 #include "i_error.h"
+
+#include "l_strings.h"
 
 #include "am_map.h"
 
@@ -316,13 +317,13 @@ P_TouchSpecialThing(mobj_t *special,
 	case SPR_ARM1:
 		if(!P_GiveArmor(player, 1))
 			return;
-		player->message = GOTARMOR;
+		player->message = L_String(STRING_P_GOTARMOR);
 		break;
 
 	case SPR_ARM2:
 		if(!P_GiveArmor(player, 2))
 			return;
-		player->message = GOTMEGA;
+		player->message = L_String(STRING_P_GOTMEGA);
 		break;
 
 		// bonus items
@@ -331,7 +332,7 @@ P_TouchSpecialThing(mobj_t *special,
 		if(player->health > 200)
 			player->health = 200;
 		player->mo->health = player->health;
-		player->message    = GOTHTHBONUS;
+		player->message    = L_String(STRING_P_GOTHTHBONUS);
 		break;
 
 	case SPR_BON2:
@@ -340,7 +341,7 @@ P_TouchSpecialThing(mobj_t *special,
 			player->armorpoints = 200;
 		if(!player->armortype)
 			player->armortype = 1;
-		player->message = GOTARMBONUS;
+		player->message = L_String(STRING_P_GOTARMBONUS);
 		break;
 
 	case SPR_SOUL:
@@ -348,7 +349,7 @@ P_TouchSpecialThing(mobj_t *special,
 		if(player->health > 200)
 			player->health = 200;
 		player->mo->health = player->health;
-		player->message    = GOTSUPER;
+		player->message    = L_String(STRING_P_GOTSUPER);
 		sound              = sfx_getpow;
 		break;
 
@@ -358,7 +359,7 @@ P_TouchSpecialThing(mobj_t *special,
 		player->health     = 200;
 		player->mo->health = player->health;
 		P_GiveArmor(player, 2);
-		player->message = GOTMSPHERE;
+		player->message = L_String(STRING_P_GOTMSPHERE);
 		sound           = sfx_getpow;
 		break;
 
@@ -366,7 +367,7 @@ P_TouchSpecialThing(mobj_t *special,
 		// leave cards for everyone
 	case SPR_BKEY:
 		if(!player->cards[it_bluecard])
-			player->message = GOTBLUECARD;
+			player->message = L_String(STRING_P_GOTBLUECARD);
 		P_GiveCard(player, it_bluecard);
 		if(!netgame)
 			break;
@@ -374,7 +375,7 @@ P_TouchSpecialThing(mobj_t *special,
 
 	case SPR_YKEY:
 		if(!player->cards[it_yellowcard])
-			player->message = GOTYELWCARD;
+			player->message = L_String(STRING_P_GOTYELWCARD);
 		P_GiveCard(player, it_yellowcard);
 		if(!netgame)
 			break;
@@ -382,7 +383,7 @@ P_TouchSpecialThing(mobj_t *special,
 
 	case SPR_RKEY:
 		if(!player->cards[it_redcard])
-			player->message = GOTREDCARD;
+			player->message = L_String(STRING_P_GOTREDCARD);
 		P_GiveCard(player, it_redcard);
 		if(!netgame)
 			break;
@@ -390,7 +391,7 @@ P_TouchSpecialThing(mobj_t *special,
 
 	case SPR_BSKU:
 		if(!player->cards[it_blueskull])
-			player->message = GOTBLUESKUL;
+			player->message = L_String(STRING_P_GOTBLUESKUL);
 		P_GiveCard(player, it_blueskull);
 		if(!netgame)
 			break;
@@ -398,7 +399,7 @@ P_TouchSpecialThing(mobj_t *special,
 
 	case SPR_YSKU:
 		if(!player->cards[it_yellowskull])
-			player->message = GOTYELWSKUL;
+			player->message = L_String(STRING_P_GOTYELWSKUL);
 		P_GiveCard(player, it_yellowskull);
 		if(!netgame)
 			break;
@@ -406,7 +407,7 @@ P_TouchSpecialThing(mobj_t *special,
 
 	case SPR_RSKU:
 		if(!player->cards[it_redskull])
-			player->message = GOTREDSKULL;
+			player->message = L_String(STRING_P_GOTREDSKULL);
 		P_GiveCard(player, it_redskull);
 		if(!netgame)
 			break;
@@ -416,7 +417,7 @@ P_TouchSpecialThing(mobj_t *special,
 	case SPR_STIM:
 		if(!P_GiveBody(player, 10))
 			return;
-		player->message = GOTSTIM;
+		player->message = L_String(STRING_P_GOTSTIM);
 		break;
 
 	case SPR_MEDI:
@@ -424,23 +425,23 @@ P_TouchSpecialThing(mobj_t *special,
 			return;
 
 		if(player->health < 25)
-			player->message = GOTMEDINEED;
+			player->message = L_String(STRING_P_GOTMEDINEED);
 		else
-			player->message = GOTMEDIKIT;
+			player->message = L_String(STRING_P_GOTMEDIKIT);
 		break;
 
 		// power ups
 	case SPR_PINV:
 		if(!P_GivePower(player, pw_invulnerability))
 			return;
-		player->message = GOTINVUL;
+		player->message = L_String(STRING_P_GOTINVUL);
 		sound           = sfx_getpow;
 		break;
 
 	case SPR_PSTR:
 		if(!P_GivePower(player, pw_strength))
 			return;
-		player->message = GOTBERSERK;
+		player->message = L_String(STRING_P_GOTBERSERK);
 		if(player->readyweapon != wp_fist)
 			player->pendingweapon = wp_fist;
 		sound = sfx_getpow;
@@ -449,28 +450,28 @@ P_TouchSpecialThing(mobj_t *special,
 	case SPR_PINS:
 		if(!P_GivePower(player, pw_invisibility))
 			return;
-		player->message = GOTINVIS;
+		player->message = L_String(STRING_P_GOTINVIS);
 		sound           = sfx_getpow;
 		break;
 
 	case SPR_SUIT:
 		if(!P_GivePower(player, pw_ironfeet))
 			return;
-		player->message = GOTSUIT;
+		player->message = L_String(STRING_P_GOTSUIT);
 		sound           = sfx_getpow;
 		break;
 
 	case SPR_PMAP:
 		if(!P_GivePower(player, pw_allmap))
 			return;
-		player->message = GOTMAP;
+		player->message = L_String(STRING_P_GOTMAP);
 		sound           = sfx_getpow;
 		break;
 
 	case SPR_PVIS:
 		if(!P_GivePower(player, pw_infrared))
 			return;
-		player->message = GOTVISOR;
+		player->message = L_String(STRING_P_GOTVISOR);
 		sound           = sfx_getpow;
 		break;
 
@@ -483,49 +484,49 @@ P_TouchSpecialThing(mobj_t *special,
 			if(!P_GiveAmmo(player, am_clip, 1))
 				return;
 		}
-		player->message = GOTCLIP;
+		player->message = L_String(STRING_P_GOTCLIP);
 		break;
 
 	case SPR_AMMO:
 		if(!P_GiveAmmo(player, am_clip, 5))
 			return;
-		player->message = GOTCLIPBOX;
+		player->message = L_String(STRING_P_GOTCLIPBOX);
 		break;
 
 	case SPR_ROCK:
 		if(!P_GiveAmmo(player, am_misl, 1))
 			return;
-		player->message = GOTROCKET;
+		player->message = L_String(STRING_P_GOTROCKET);
 		break;
 
 	case SPR_BROK:
 		if(!P_GiveAmmo(player, am_misl, 5))
 			return;
-		player->message = GOTROCKBOX;
+		player->message = L_String(STRING_P_GOTROCKBOX);
 		break;
 
 	case SPR_CELL:
 		if(!P_GiveAmmo(player, am_cell, 1))
 			return;
-		player->message = GOTCELL;
+		player->message = L_String(STRING_P_GOTCELL);
 		break;
 
 	case SPR_CELP:
 		if(!P_GiveAmmo(player, am_cell, 5))
 			return;
-		player->message = GOTCELLBOX;
+		player->message = L_String(STRING_P_GOTCELLBOX);
 		break;
 
 	case SPR_SHEL:
 		if(!P_GiveAmmo(player, am_shell, 1))
 			return;
-		player->message = GOTSHELLS;
+		player->message = L_String(STRING_P_GOTSHELLS);
 		break;
 
 	case SPR_SBOX:
 		if(!P_GiveAmmo(player, am_shell, 5))
 			return;
-		player->message = GOTSHELLBOX;
+		player->message = L_String(STRING_P_GOTSHELLBOX);
 		break;
 
 	case SPR_BPAK:
@@ -536,56 +537,56 @@ P_TouchSpecialThing(mobj_t *special,
 		}
 		for(i = 0; i < NUMAMMO; i++)
 			P_GiveAmmo(player, i, 1);
-		player->message = GOTBACKPACK;
+		player->message = L_String(STRING_P_GOTBACKPACK);
 		break;
 
 		// weapons
 	case SPR_BFUG:
 		if(!P_GiveWeapon(player, wp_bfg, false))
 			return;
-		player->message = GOTBFG9000;
+		player->message = L_String(STRING_P_GOTBFG9000);
 		sound           = sfx_wpnup;
 		break;
 
 	case SPR_MGUN:
 		if(!P_GiveWeapon(player, wp_chaingun, special->flags & MF_DROPPED))
 			return;
-		player->message = GOTCHAINGUN;
+		player->message = L_String(STRING_P_GOTCHAINGUN);
 		sound           = sfx_wpnup;
 		break;
 
 	case SPR_CSAW:
 		if(!P_GiveWeapon(player, wp_chainsaw, false))
 			return;
-		player->message = GOTCHAINSAW;
+		player->message = L_String(STRING_P_GOTCHAINSAW);
 		sound           = sfx_wpnup;
 		break;
 
 	case SPR_LAUN:
 		if(!P_GiveWeapon(player, wp_missile, false))
 			return;
-		player->message = GOTLAUNCHER;
+		player->message = L_String(STRING_P_GOTLAUNCHER);
 		sound           = sfx_wpnup;
 		break;
 
 	case SPR_PLAS:
 		if(!P_GiveWeapon(player, wp_plasma, false))
 			return;
-		player->message = GOTPLASMA;
+		player->message = L_String(STRING_P_GOTPLASMA);
 		sound           = sfx_wpnup;
 		break;
 
 	case SPR_SHOT:
 		if(!P_GiveWeapon(player, wp_shotgun, special->flags & MF_DROPPED))
 			return;
-		player->message = GOTSHOTGUN;
+		player->message = L_String(STRING_P_GOTSHOTGUN);
 		sound           = sfx_wpnup;
 		break;
 
 	case SPR_SGN2:
 		if(!P_GiveWeapon(player, wp_supershotgun, special->flags & MF_DROPPED))
 			return;
-		player->message = GOTSHOTGUN2;
+		player->message = L_String(STRING_P_GOTSHOTGUN2);
 		sound           = sfx_wpnup;
 		break;
 

@@ -28,6 +28,7 @@
 #include "m_misc.h"
 #include "m_menu.h"
 #include "m_random.h"
+#include "l_strings.h"
 #include "i_system.h"
 #include "i_error.h"
 
@@ -53,7 +54,6 @@
 #include "s_sound.h"
 
 // Data.
-#include "dstrings.h"
 #include "sounds.h"
 
 // SKY handling - still the wrong place.
@@ -619,8 +619,7 @@ G_Ticker(void) {
 			if(cmd->forwardmove > TURBOTHRESHOLD
 				&& !(gametic & 31) && ((gametic >> 5) & 3) == i) {
 				static char turbomessage[80];
-				extern char *player_names[4];
-				sprintf(turbomessage, "%s is turbo!", player_names[i]);
+				sprintf(turbomessage, "%s is turbo!", L_String(STRING_HU_PLRGREEN + i));
 				players[consoleplayer].message = turbomessage;
 			}
 
@@ -1239,7 +1238,7 @@ G_DoSaveGame(void) {
 	gameaction         = ga_nothing;
 	savedescription[0] = 0;
 
-	players[consoleplayer].message = GGSAVED;
+	players[consoleplayer].message = L_String(STRING_G_SAVED);
 
 	// draw the pattern into the back screen
 	R_FillBackScreen();

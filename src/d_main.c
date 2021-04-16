@@ -37,7 +37,6 @@
 #include "doomdef.h"
 #include "doomstat.h"
 
-#include "dstrings.h"
 #include "sounds.h"
 
 #include "z_zone.h"
@@ -66,6 +65,8 @@
 
 #include "p_setup.h"
 #include "r_local.h"
+
+#include "l_strings.h"
 
 #include "d_main.h"
 
@@ -578,7 +579,7 @@ D_IdentifyVersion(void) {
 	if(D_FindVersion(doomwaddir, doomwaddirlen, "doom2f.wad", commercial)) {
 		/* C'est ridicule! */
 		/* Let's handle languages in config files, okay? */
-		language = french;
+		L_SetCurrentLanguage(LANGUAGE_FRENCH);
 		printf("French version\n");
 		return;
 	}
@@ -767,10 +768,10 @@ D_DoomMain(void) {
 	printf("%s\n", title);
 
 	if(devparm)
-		printf(D_DEVSTR);
+		fputs(L_String(STRING_D_DEVSTR), stdout);
 
 	if(M_CheckParm("-cdrom")) {
-		printf(D_CDROM);
+		fputs(L_String(STRING_D_CDROM), stdout);
 		mkdir("c:\\doomdata", 0);
 		strcpy(basedefault, "c:/doomdata/default.cfg");
 	}

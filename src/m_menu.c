@@ -26,7 +26,8 @@
 #include <ctype.h>
 
 #include "doomdef.h"
-#include "dstrings.h"
+
+#include "l_strings.h"
 
 #include "d_main.h"
 
@@ -80,7 +81,7 @@ int quickSaveSlot;
 // 1 = message to be printed
 int messageToPrint;
 // ...and here is the message string!
-char *messageString;
+const char *messageString;
 
 // message x & y
 int messx;
@@ -93,14 +94,6 @@ bool messageNeedsInput;
 void (*messageRoutine)(int response);
 
 #define SAVESTRINGSIZE 24
-
-char gammamsg[5][26] = {
-	GAMMALVL0,
-	GAMMALVL1,
-	GAMMALVL2,
-	GAMMALVL3,
-	GAMMALVL4
-};
 
 // we are going to be entering a savegame string
 int saveStringEnter;
@@ -248,11 +241,11 @@ M_WriteText(int x, int y, char *string);
 int
 M_StringWidth(char *string);
 int
-M_StringHeight(char *string);
+M_StringHeight(const char *string);
 void
 M_StartControlPanel(void);
 void
-M_StartMessage(char *string, void *routine, bool input);
+M_StartMessage(const char *string, void *routine, bool input);
 void
 M_StopMessage(void);
 void
@@ -527,7 +520,7 @@ M_ReadSaveStrings(void) {
 
 		handle = open(name, O_RDONLY | 0, 0666);
 		if(handle == -1) {
-			strcpy(&savegamestrings[i][0], EMPTYSTRING);
+			strcpy(&savegamestrings[i][0], L_String(STRING_M_EMPTYSTRING));
 			LoadMenu[i].status = 0;
 			continue;
 		}
@@ -589,7 +582,7 @@ M_LoadSelect(int choice) {
 void
 M_LoadGame(int choice) {
 	if(netgame) {
-		M_StartMessage(LOADNET, NULL, false);
+		M_StartMessage(L_String(STRING_M_LOADNET), NULL, false);
 		return;
 	}
 
@@ -639,7 +632,7 @@ M_SaveSelect(int choice) {
 
 	saveSlot = choice;
 	strcpy(saveOldString, savegamestrings[choice]);
-	if(!strcmp(savegamestrings[choice], EMPTYSTRING))
+	if(!strcmp(savegamestrings[choice], L_String(STRING_M_EMPTYSTRING)))
 		savegamestrings[choice][0] = 0;
 	saveCharIndex = strlen(savegamestrings[choice]);
 }
@@ -650,7 +643,7 @@ M_SaveSelect(int choice) {
 void
 M_SaveGame(int choice) {
 	if(!usergame) {
-		M_StartMessage(SAVEDEAD, NULL, false);
+		M_StartMessage(L_String(STRING_M_SAVEDEAD), NULL, false);
 		return;
 	}
 
@@ -691,7 +684,7 @@ M_QuickSave(void) {
 		quickSaveSlot = -2; // means to pick a slot now
 		return;
 	}
-	sprintf(tempstring, QSPROMPT, savegamestrings[quickSaveSlot]);
+	sprintf(tempstring, L_String(STRING_M_QSPROMPT), savegamestrings[quickSaveSlot]);
 	M_StartMessage(tempstring, M_QuickSaveResponse, true);
 }
 
@@ -709,15 +702,15 @@ M_QuickLoadResponse(int ch) {
 void
 M_QuickLoad(void) {
 	if(netgame) {
-		M_StartMessage(QLOADNET, NULL, false);
+		M_StartMessage(L_String(STRING_M_QLOADNET), NULL, false);
 		return;
 	}
 
 	if(quickSaveSlot < 0) {
-		M_StartMessage(QSAVESPOT, NULL, false);
+		M_StartMessage(L_String(STRING_M_QSAVESPOT), NULL, false);
 		return;
 	}
-	sprintf(tempstring, QLPROMPT, savegamestrings[quickSaveSlot]);
+	sprintf(tempstring, L_String(STRING_M_QLPROMPT), savegamestrings[quickSaveSlot]);
 	M_StartMessage(tempstring, M_QuickLoadResponse, true);
 }
 
@@ -834,7 +827,7 @@ M_DrawNewGame(void) {
 void
 M_NewGame(int choice) {
 	if(netgame && !demoplayback) {
-		M_StartMessage(NEWGAME, NULL, false);
+		M_StartMessage(L_String(STRING_M_NEWGAME), NULL, false);
 		return;
 	}
 
@@ -866,7 +859,7 @@ M_VerifyNightmare(int ch) {
 void
 M_ChooseSkill(int choice) {
 	if(choice == nightmare) {
-		M_StartMessage(NIGHTMARE, M_VerifyNightmare, true);
+		M_StartMessage(L_String(STRING_M_NIGHTMARE), M_VerifyNightmare, true);
 		return;
 	}
 
@@ -878,7 +871,7 @@ void
 M_Episode(int choice) {
 	if((gamemode == shareware)
 		&& choice) {
-		M_StartMessage(SWSTRING, NULL, false);
+		M_StartMessage(L_String(STRING_M_SWSTRING), NULL, false);
 		M_SetupNextMenu(&ReadDef1);
 		return;
 	}
@@ -929,9 +922,9 @@ M_ChangeMessages(int choice) {
 	showMessages = 1 - showMessages;
 
 	if(!showMessages)
-		players[consoleplayer].message = MSGOFF;
+		players[consoleplayer].message = L_String(STRING_M_MSGOFF);
 	else
-		players[consoleplayer].message = MSGON;
+		players[consoleplayer].message = L_String(STRING_M_MSGON);
 
 	message_dontfuckwithme = true;
 }
@@ -958,11 +951,11 @@ M_EndGame(int choice) {
 	}
 
 	if(netgame) {
-		M_StartMessage(NETEND, NULL, false);
+		M_StartMessage(L_String(STRING_M_NETEND), NULL, false);
 		return;
 	}
 
-	M_StartMessage(ENDGAME, M_EndGameResponse, true);
+	M_StartMessage(L_String(STRING_M_ENDGAME), M_EndGameResponse, true);
 }
 
 //
@@ -1027,12 +1020,9 @@ M_QuitResponse(int ch) {
 
 void
 M_QuitDOOM(int choice) {
-	// We pick index 0 which is language sensitive,
-	//  or one at random, between 1 and maximum number.
-	if(language != english)
-		sprintf(endstring, "%s\n\n" DOSY, endmsg[0]);
-	else
-		sprintf(endstring, "%s\n\n" DOSY, endmsg[(gametic % (NUM_QUITMESSAGES - 2)) + 1]);
+
+	/* TODO: Determine game version and choose accordingly + gametick % 7 */
+	snprintf(endstring, sizeof(endstring) - 1, "%s\n\n%s", L_String(STRING_M_QUITMSG), L_String(STRING_M_DOSY));
 
 	M_StartMessage(endstring, M_QuitResponse, true);
 }
@@ -1125,7 +1115,7 @@ M_DrawSelCell(menu_t *menu,
 }
 
 void
-M_StartMessage(char *string,
+M_StartMessage(const char *string,
 	void *routine,
 	bool input) {
 	messageLastMenuActive = menuactive;
@@ -1167,7 +1157,7 @@ M_StringWidth(char *string) {
 //      Find string height from hu_font chars
 //
 int
-M_StringHeight(char *string) {
+M_StringHeight(const char *string) {
 	int i;
 	int h;
 	int height = LE_U16(hu_font[0]->height);
@@ -1444,7 +1434,7 @@ M_Responder(event_t *ev) {
 			usegamma++;
 			if(usegamma > 4)
 				usegamma = 0;
-			players[consoleplayer].message = gammamsg[usegamma];
+			players[consoleplayer].message = L_String(STRING_M_GAMMALVL0 + usegamma);
 			I_SetPalette(W_LumpForName("PLAYPAL")->data);
 			return true;
 		}

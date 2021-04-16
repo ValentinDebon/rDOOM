@@ -22,12 +22,13 @@
 
 #include "s_sound.h"
 
+#include "l_strings.h"
+
 // State.
 #include "doomstat.h"
 #include "r_state.h"
 
 // Data.
-#include "dstrings.h"
 #include "sounds.h"
 
 #if 0
@@ -201,7 +202,7 @@ EV_DoLockedDoor(const struct p_line *line,
 		if(!p)
 			return 0;
 		if(!p->cards[it_bluecard] && !p->cards[it_blueskull]) {
-			p->message = PD_BLUEO;
+			p->message = L_String(STRING_P_BLUEO);
 			S_StartSound(NULL, sfx_oof);
 			return 0;
 		}
@@ -212,7 +213,7 @@ EV_DoLockedDoor(const struct p_line *line,
 		if(!p)
 			return 0;
 		if(!p->cards[it_redcard] && !p->cards[it_redskull]) {
-			p->message = PD_REDO;
+			p->message = L_String(STRING_P_REDO);
 			S_StartSound(NULL, sfx_oof);
 			return 0;
 		}
@@ -223,7 +224,7 @@ EV_DoLockedDoor(const struct p_line *line,
 		if(!p)
 			return 0;
 		if(!p->cards[it_yellowcard] && !p->cards[it_yellowskull]) {
-			p->message = PD_YELLOWO;
+			p->message = L_String(STRING_P_YELLOWO);
 			S_StartSound(NULL, sfx_oof);
 			return 0;
 		}
@@ -337,7 +338,7 @@ EV_VerticalDoor(struct p_line *line,
 			return;
 
 		if(!player->cards[it_bluecard] && !player->cards[it_blueskull]) {
-			player->message = PD_BLUEK;
+			player->message = L_String(STRING_P_BLUEK);
 			S_StartSound(NULL, sfx_oof);
 			return;
 		}
@@ -349,7 +350,7 @@ EV_VerticalDoor(struct p_line *line,
 			return;
 
 		if(!player->cards[it_yellowcard] && !player->cards[it_yellowskull]) {
-			player->message = PD_YELLOWK;
+			player->message = L_String(STRING_P_YELLOWK);
 			S_StartSound(NULL, sfx_oof);
 			return;
 		}
@@ -361,7 +362,7 @@ EV_VerticalDoor(struct p_line *line,
 			return;
 
 		if(!player->cards[it_redcard] && !player->cards[it_redskull]) {
-			player->message = PD_REDK;
+			player->message = L_String(STRING_P_REDK);
 			S_StartSound(NULL, sfx_oof);
 			return;
 		}

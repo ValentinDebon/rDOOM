@@ -44,11 +44,12 @@
 
 #include "hu_stuff.h"
 
+#include "l_strings.h"
+
 // State.
 #include "doomstat.h"
 
 // Data.
-#include "dstrings.h"
 
 #include "m_misc.h"
 
@@ -190,12 +191,7 @@ extern int numChannels;
 extern int mb_used;
 #endif
 
-#ifdef LINUX
-char *mousetype;
-char *mousedev;
-#endif
-
-extern char *chat_macros[];
+extern const char *chat_macros[];
 
 typedef struct
 {
@@ -248,26 +244,21 @@ default_t defaults[] = {
 typedef struct
 {
 	char *name;
-	char **location;
-	char *defaultvalue;
+	const char **location;
+	enum l_string defaultvalue;
 } default_str_t;
 
 default_str_t defaultstrs[] = {
-#ifdef LINUX
-	{ "mousedev", &mousedev, "/dev/ttyS0" },
-	{ "mousetype", &mousetype, "microsoft" },
-#endif
-
-	{ "chatmacro0", &chat_macros[0], HUSTR_CHATMACRO0 },
-	{ "chatmacro1", &chat_macros[1], HUSTR_CHATMACRO1 },
-	{ "chatmacro2", &chat_macros[2], HUSTR_CHATMACRO2 },
-	{ "chatmacro3", &chat_macros[3], HUSTR_CHATMACRO3 },
-	{ "chatmacro4", &chat_macros[4], HUSTR_CHATMACRO4 },
-	{ "chatmacro5", &chat_macros[5], HUSTR_CHATMACRO5 },
-	{ "chatmacro6", &chat_macros[6], HUSTR_CHATMACRO6 },
-	{ "chatmacro7", &chat_macros[7], HUSTR_CHATMACRO7 },
-	{ "chatmacro8", &chat_macros[8], HUSTR_CHATMACRO8 },
-	{ "chatmacro9", &chat_macros[9], HUSTR_CHATMACRO9 }
+	{ "chatmacro0", chat_macros + 0, STRING_HU_CHATMACRO0 },
+	{ "chatmacro1", chat_macros + 1, STRING_HU_CHATMACRO1 },
+	{ "chatmacro2", chat_macros + 2, STRING_HU_CHATMACRO2 },
+	{ "chatmacro3", chat_macros + 3, STRING_HU_CHATMACRO3 },
+	{ "chatmacro4", chat_macros + 4, STRING_HU_CHATMACRO4 },
+	{ "chatmacro5", chat_macros + 5, STRING_HU_CHATMACRO5 },
+	{ "chatmacro6", chat_macros + 6, STRING_HU_CHATMACRO6 },
+	{ "chatmacro7", chat_macros + 7, STRING_HU_CHATMACRO7 },
+	{ "chatmacro8", chat_macros + 8, STRING_HU_CHATMACRO8 },
+	{ "chatmacro9", chat_macros + 9, STRING_HU_CHATMACRO9 }
 };
 
 int numdefaults;
@@ -281,7 +272,7 @@ void
 M_SaveDefaults(void) {
 	int i;
 	int v;
-	char *s;
+	const char *s;
 	FILE *f;
 
 	f = fopen(defaultfile, "w");
@@ -323,7 +314,7 @@ M_LoadDefaults(void) {
 		*defaults[i].location = defaults[i].defaultvalue;
 	numdefaultstrs = sizeof(defaultstrs) / sizeof(defaultstrs[0]);
 	for(i = 0; i < numdefaultstrs; i++)
-		*defaultstrs[i].location = defaultstrs[i].defaultvalue;
+		*defaultstrs[i].location = L_String(defaultstrs[i].defaultvalue);
 
 	// check for a custom default file
 	i = M_CheckParm("-config");

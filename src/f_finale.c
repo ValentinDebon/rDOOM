@@ -27,9 +27,9 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "s_sound.h"
+#include "l_strings.h"
 
 // Data.
-#include "dstrings.h"
 #include "sounds.h"
 
 #include "doomstat.h"
@@ -49,6 +49,7 @@ int finalecount;
 #define TEXTSPEED 3
 #define TEXTWAIT 250
 
+#if 0
 char *e1text = E1TEXT;
 char *e2text = E2TEXT;
 char *e3text = E3TEXT;
@@ -74,8 +75,9 @@ char *t3text = T3TEXT;
 char *t4text = T4TEXT;
 char *t5text = T5TEXT;
 char *t6text = T6TEXT;
+#endif
 
-char *finaletext;
+const char *finaletext;
 char *finaleflat;
 
 void
@@ -111,19 +113,19 @@ F_StartFinale(void) {
 		switch(gameepisode) {
 		case 1:
 			finaleflat = "FLOOR4_8";
-			finaletext = e1text;
+			finaletext = L_String(STRING_F_E1TEXT);
 			break;
 		case 2:
 			finaleflat = "SFLR6_1";
-			finaletext = e2text;
+			finaletext = L_String(STRING_F_E2TEXT);
 			break;
 		case 3:
 			finaleflat = "MFLR8_4";
-			finaletext = e3text;
+			finaletext = L_String(STRING_F_E3TEXT);
 			break;
 		case 4:
 			finaleflat = "MFLR8_3";
-			finaletext = e4text;
+			finaletext = L_String(STRING_F_E4TEXT);
 			break;
 		default:
 			// Ouch.
@@ -139,27 +141,27 @@ F_StartFinale(void) {
 		switch(gamemap) {
 		case 6:
 			finaleflat = "SLIME16";
-			finaletext = c1text;
+			finaletext = L_String(STRING_F_C1TEXT);
 			break;
 		case 11:
 			finaleflat = "RROCK14";
-			finaletext = c2text;
+			finaletext = L_String(STRING_F_C2TEXT);
 			break;
 		case 20:
 			finaleflat = "RROCK07";
-			finaletext = c3text;
+			finaletext = L_String(STRING_F_C3TEXT);
 			break;
 		case 30:
 			finaleflat = "RROCK17";
-			finaletext = c4text;
+			finaletext = L_String(STRING_F_C4TEXT);
 			break;
 		case 15:
 			finaleflat = "RROCK13";
-			finaletext = c5text;
+			finaletext = L_String(STRING_F_C5TEXT);
 			break;
 		case 31:
 			finaleflat = "RROCK19";
-			finaletext = c6text;
+			finaletext = L_String(STRING_F_C6TEXT);
 			break;
 		default:
 			// Ouch.
@@ -172,7 +174,7 @@ F_StartFinale(void) {
 	default:
 		S_ChangeMusic(mus_read_m, true);
 		finaleflat = "F_SKY1"; // Not used anywhere else.
-		finaletext = c1text;   // FIXME - other text, music?
+		finaletext = L_String(STRING_F_C1TEXT);   // FIXME - other text, music?
 		break;
 	}
 
@@ -245,7 +247,7 @@ F_TextWrite(void) {
 
 	int x, y, w;
 	int count;
-	char *ch;
+	const char *ch;
 	int c;
 	int cx;
 	int cy;
@@ -306,30 +308,28 @@ F_TextWrite(void) {
 //
 typedef struct
 {
-	char *name;
+	enum l_string name;
 	mobjtype_t type;
 } castinfo_t;
 
-castinfo_t castorder[] = {
-	{ CC_ZOMBIE, MT_POSSESSED },
-	{ CC_SHOTGUN, MT_SHOTGUY },
-	{ CC_HEAVY, MT_CHAINGUY },
-	{ CC_IMP, MT_TROOP },
-	{ CC_DEMON, MT_SERGEANT },
-	{ CC_LOST, MT_SKULL },
-	{ CC_CACO, MT_HEAD },
-	{ CC_HELL, MT_KNIGHT },
-	{ CC_BARON, MT_BRUISER },
-	{ CC_ARACH, MT_BABY },
-	{ CC_PAIN, MT_PAIN },
-	{ CC_REVEN, MT_UNDEAD },
-	{ CC_MANCU, MT_FATSO },
-	{ CC_ARCH, MT_VILE },
-	{ CC_SPIDER, MT_SPIDER },
-	{ CC_CYBER, MT_CYBORG },
-	{ CC_HERO, MT_PLAYER },
-
-	{ NULL, 0 }
+const castinfo_t castorder[] = {
+	{ STRING_F_CC_ZOMBIE, MT_POSSESSED },
+	{ STRING_F_CC_SHOTGUN, MT_SHOTGUY },
+	{ STRING_F_CC_HEAVY, MT_CHAINGUY },
+	{ STRING_F_CC_IMP, MT_TROOP },
+	{ STRING_F_CC_DEMON, MT_SERGEANT },
+	{ STRING_F_CC_LOST, MT_SKULL },
+	{ STRING_F_CC_CACO, MT_HEAD },
+	{ STRING_F_CC_HELL, MT_KNIGHT },
+	{ STRING_F_CC_BARON, MT_BRUISER },
+	{ STRING_F_CC_ARACH, MT_BABY },
+	{ STRING_F_CC_PAIN, MT_PAIN },
+	{ STRING_F_CC_REVEN, MT_UNDEAD },
+	{ STRING_F_CC_MANCU, MT_FATSO },
+	{ STRING_F_CC_ARCH, MT_VILE },
+	{ STRING_F_CC_SPIDER, MT_SPIDER },
+	{ STRING_F_CC_CYBER, MT_CYBORG },
+	{ STRING_F_CC_HERO, MT_PLAYER },
 };
 
 int castnum;
@@ -374,8 +374,9 @@ F_CastTicker(void) {
 		// switch from deathstate to next monster
 		castnum++;
 		castdeath = false;
-		if(castorder[castnum].name == NULL)
+		if(castnum == sizeof(castorder) / sizeof(*castorder)) {
 			castnum = 0;
+		}
 		if(mobjinfo[castorder[castnum].type].seesound)
 			S_StartSound(NULL, mobjinfo[castorder[castnum].type].seesound);
 		caststate  = &states[mobjinfo[castorder[castnum].type].seestate];
@@ -515,8 +516,9 @@ F_CastResponder(event_t *ev) {
 }
 
 void
-F_CastPrint(char *text) {
-	char *ch;
+F_CastPrint(enum l_string string) {
+	const char * const text = L_String(string);
+	const char *ch;
 	int c;
 	int cx;
 	int width;
