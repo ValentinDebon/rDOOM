@@ -21,25 +21,20 @@
 
 #include "i_filemap.h"
 #include "i_error.h"
+#include "m_array.h"
 #include "m_swap.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+M_TemplateArray(Filemap, struct i_fileMap, 4);
+M_TemplateArray(Lump, struct w_lump, 2048);
+
 static struct w_wad {
-	struct i_fileMap *filemaps;
-	size_t filemaps_count;
-
-	struct w_lump *lumps;
-	size_t lumps_count;
+	struct m_arrayFilemap filemaps;
+	struct m_arrayLump lumps;
 } w_wad;
-
-static void
-W_ReserveLumps(size_t count) {
-	w_wad.lumps_count += count;
-	w_wad.lumps = realloc(w_wad.lumps, w_wad.lumps_count * sizeof(*w_wad.lumps));
-}
 
 static void
 W_InitFile(const char *filename, struct i_fileMap *filemap) {
@@ -47,96 +42,85 @@ W_InitFile(const char *filename, struct i_fileMap *filemap) {
 
 	printf(" adding %s\n", filename);
 
-	const char *extension = strrchr(filename, '.');
+	const char * const extension = strrchr(filename, '.');
 	if(extension != NULL && strcasecmp(extension, ".wad") == 0) { /* WAD files */
 		const struct w_wadInfo *wadinfo = filemap->address;
 
 		/* Check magic number */
-		if(memcmp(wadinfo->identification, "IWAD", 4) != 0) {
-			if(memcmp(wadinfo->identification, "PWAD", 4) != 0) {
-				I_Error("W_InitFile: WAD files %s doesn't have IWAD or PWAD id\n", filename);
-			}
+		if(memcmp(wadinfo->identification, "IWAD", 4) != 0
+			&& memcmp(wadinfo->identification, "PWAD", 4) != 0) {
+			I_Error("W_InitFile: WAD files %s doesn't have IWAD or PWAD id\n", filename);
 		}
 
 		/* Get count of added lumps and info table */
 		const size_t count = LE_U32(wadinfo->lumps_count);
 		const struct w_lumpInfo *lumpinfo = (const struct w_lumpInfo *)
 			((const uint8_t *)filemap->address + LE_U32(wadinfo->info_table_offset));
+		const struct w_lumpInfo * const lumpinfoend = lumpinfo + count;
 
-		/* Reserve memory for new lumps, and get array bounds */
-		W_ReserveLumps(count);
-		struct w_lump * const lumpsend = w_wad.lumps + w_wad.lumps_count;
-		struct w_lump *lumps = lumpsend - count;
+		while(lumpinfo != lumpinfoend) {
+			struct w_lump lump;
 
-		while(lumps != lumpsend) {
+			strncpy(lump.name, lumpinfo->name, sizeof(lump.name));
+			lump.size = lumpinfo->size;
+			lump.data = (const uint8_t *)filemap->address + lumpinfo->position;
 
-			strncpy(lumps->name, lumpinfo->name, sizeof(lumps->name));
-			lumps->size = lumpinfo->size;
-			lumps->data = (const uint8_t *)filemap->address + lumpinfo->position;
+			M_ArrayLumpAppend(&w_wad.lumps, lump);
 
 			lumpinfo++;
-			lumps++;
 		}
 	} else { /* Standalone lump patch */
-		W_ReserveLumps(1);
-		struct w_lump *lump = w_wad.lumps + w_wad.lumps_count - 1;
+		struct w_lump lump;
 
-		strncpy(lump->name, filename, sizeof(lump->name));
-		lump->size = filemap->size;
-		lump->data = filemap->address;
+		strncpy(lump.name, filename, sizeof(lump.name));
+		lump.size = filemap->size;
+		lump.data = filemap->address;
+
+		M_ArrayLumpAppend(&w_wad.lumps, lump);
 	}
 }
 
 static void
 W_Shutdown(void) {
 
-	while(w_wad.filemaps_count != 0) {
-
-		w_wad.filemaps_count--;
-
-		I_FileUnMap(w_wad.filemaps + w_wad.filemaps_count);
+	for(struct i_fileMap *current = w_wad.filemaps.begin; current != w_wad.filemaps.end; current++) {
+		I_FileUnMap(current);
 	}
 
-	free(w_wad.filemaps);
-	free(w_wad.lumps);
+	M_ArrayFilemapFree(&w_wad.filemaps);
+	M_ArrayLumpFree(&w_wad.lumps);
 }
 
 void
-W_Init(const char * const *files) {
+W_Init(const char * const *begin, const char * const *end) {
 
-	if(*files != NULL) {
-		const char * const *filesend = files;
-
-		while(*++filesend != NULL);
-
-		w_wad.filemaps_count = filesend - files;
-		w_wad.filemaps = malloc(w_wad.filemaps_count * sizeof(*w_wad.filemaps));
-
-		if(w_wad.filemaps == NULL) {
-			I_Error("W_Init: Too many WAD files");
-		}
-
-		while(files != filesend) {
-			const char *filename = *files;
-
-			files++;
-
-			W_InitFile(filename, filesend - files + w_wad.filemaps);
-		}
-	} else {
+	if(begin == end) {
 		I_Error("W_Init: No files found");
 	}
+
+	while(begin != end) {
+		const char *filename = *begin;
+		struct i_fileMap filemap;
+
+		W_InitFile(filename, &filemap);
+		M_ArrayFilemapAppend(&w_wad.filemaps, filemap);
+
+		begin++;
+	}
+
+	M_ArrayFilemapFit(&w_wad.filemaps);
+	M_ArrayLumpFit(&w_wad.lumps);
 
 	atexit(W_Shutdown);
 }
 
 lumpId_t
 W_FindIdForName(const char *name) {
-	const struct w_lump *lumpsend = w_wad.lumps + w_wad.lumps_count;
+	const struct w_lump *lumpsend = w_wad.lumps.end;
 
-	while(--lumpsend >= w_wad.lumps) {
+	while(--lumpsend >= w_wad.lumps.begin) {
 		if(strncasecmp(lumpsend->name, name, sizeof(lumpsend->name)) == 0) {
-			return lumpsend - w_wad.lumps;
+			return lumpsend - w_wad.lumps.begin;
 		}
 	}
 
@@ -157,11 +141,11 @@ W_GetIdForName(const char *name) {
 const struct w_lump *
 W_LumpForId(lumpId_t id) {
 
-	if(id < 0 || id >= w_wad.lumps_count) {
+	if(id < 0 || id >= w_wad.lumps.end - w_wad.lumps.begin) {
 		I_Error("W_LumpForId: Invalid lump id '%d'", id);
 	}
 
-	return w_wad.lumps + id;
+	return w_wad.lumps.begin + id;
 }
 
 const struct w_lump *
@@ -172,5 +156,5 @@ W_LumpForName(const char *name) {
 		I_Error("W_LumpForId: Invalid lump name '%s'", name);
 	}
 
-	return w_wad.lumps + id;
+	return w_wad.lumps.begin + id;
 }

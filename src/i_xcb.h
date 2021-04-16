@@ -13,8 +13,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __I_XCB__
-#define __I_XCB__
+#ifndef RDOOM_I_XCB_H
+#define RDOOM_I_XCB_H
 
 #include <xcb/xcb.h>
 #include <xcb/render.h>
@@ -57,4 +57,5 @@ I_InitXCB(void);
 int
 I_PostXCBEvent(const xcb_generic_event_t *event);
 
+/* RDOOM_I_XCB_H */
 #endif

@@ -55,10 +55,20 @@ Another warning concerning "Demo is from a different game version" was here, not
 I modified the condition from different to greater than engine one. Didn't seem to break a thing, allows them to run.
 Removed `htonl` and `htons` macros, redundant with `<arpa/inet.h>` ones.
 
-# Build system and utilities
+## Build system and utilities
 Implementing runtime localization, I thought it would be more interesting to create the source files from
 translation dictionaries (like strings files in macOS' Xcode). I also wanted to sync the readwad with my new wad support.
 Managing portable Makefiles will be a pain. I'll use CMake to port the build system (and maybe add a generic Makefile just for rDOOM).
 These new ideas will be implemented in the `tools/` directory. And use rDOOM's headers and C files to stay coherent. Will also create a utility
 to extract textures from a WAD file if libpng is available.
 
+## Localization
+Localization is now available! Lang files are parsed by `genlang` and preprocessely included into `l_strings.c`.
+It ensures a warning for every non translated key. However, you must manually ensure the `enum l_string` has every key declared in `genlang`.
+While upgrading the source code to the localization module, I found out lots of strings manipulations are done in random buffers here and there.
+It may be time to add some new files in `M_*` to remove the engine's limitations and have a dedicated memory space for string formatting/manipulations.
+
+## Templates?
+Just created a template system for arrays. Testing it in `W_*`, it's pretty neat, and the machine code duplication should be negligible in memory space.
+It might be the solution for all limitations removals. And even if the header code is pretty unreadable, it inserts nicely in the C source files.
+It might also be a solution to easily regroup all allocations in the `Z_*` module, effectively limiting memory usage explicitly.

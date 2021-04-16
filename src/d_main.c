@@ -70,6 +70,14 @@
 
 #include "d_main.h"
 
+#include "m_array.h"
+
+M_TemplateArray(Wadfile, const char *, 4);
+
+static struct d_main {
+	struct m_arrayWadfile wadfiles;
+} d_main;
+
 //
 // D-DoomLoop()
 // Not a globally visible function,
@@ -81,9 +89,6 @@
 //
 void
 D_DoomLoop(void);
-
-#define MAXWADFILES 20
-char *wadfiles[MAXWADFILES];
 
 int devparm;     // started game with -devparm
 int nomonsters;  // checkparm of -nomonsters
@@ -485,21 +490,9 @@ D_StartTitle(void) {
 //      print title for every printed line
 char title[128];
 
-//
-// D_AddFile
-//
-void
-D_AddFile(char *file) {
-	int numwadfiles;
-	char *newfile;
-
-	for(numwadfiles = 0; wadfiles[numwadfiles]; numwadfiles++)
-		;
-
-	newfile = malloc(strlen(file) + 1);
-	strcpy(newfile, file);
-
-	wadfiles[numwadfiles] = newfile;
+static void
+D_AddFile(const char *file) {
+	M_ArrayWadfileAppend(&d_main.wadfiles, strdup(file));
 }
 
 static bool
@@ -902,7 +895,7 @@ D_DoomMain(void) {
 	Z_Init();
 
 	printf("W_Init: Init WADfiles.\n");
-	W_Init((const char **)wadfiles);
+	W_Init(d_main.wadfiles.begin, d_main.wadfiles.end);
 
 	// Check for -file in shareware
 	if(modifiedgame) {

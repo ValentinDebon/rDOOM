@@ -17,8 +17,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef AM_MAP_H
-#define AM_MAP_H
+#ifndef RDOOM_AM_MAP_H
+#define RDOOM_AM_MAP_H
 
 #include <stdbool.h>
 
@@ -49,5 +49,5 @@ AM_Drawer(void);
 void
 AM_Stop(void);
 
-/* AM_MAP_H */
+/* RDOOM_AM_MAP_H */
 #endif

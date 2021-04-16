@@ -9,7 +9,8 @@ I released the repository at the first runtime error I encountered (not segfault
 
 - [x] Replace Xlib by XCB.
 - [x] Update WAD/Lumps parsing, rewrite structures for portability.
-- [ ] Update language system.
+- [x] Update language system.
+- [ ] Remove arbitrary limitations.
 - [ ] Hunt down awful C hacks.
 - [ ] Regroup global variables in "namespaces" structs.
 - [ ] Implement Pulseaudio-backed audio.

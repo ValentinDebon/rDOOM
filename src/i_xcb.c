@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-// Copyright (C) 1993-1996 by id Software, Inc.
+// Copyright (C) 2020 by Valentin Debon.
 //
 // This source is available for distribution and/or modification
 // only under the terms of the DOOM Source Code License as
@@ -12,7 +12,7 @@
 // for more details.
 //
 // DESCRIPTION:
-//	DOOM stuff for X11, UNIX.
+//	DOOM stuff for XCB, UNIX.
 //
 //-----------------------------------------------------------------------------
 

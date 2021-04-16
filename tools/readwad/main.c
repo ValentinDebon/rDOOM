@@ -6,11 +6,14 @@
 
 #include "w_wad.h"
 #include "m_swap.h"
+#include "m_array.h"
+
+M_TemplateArray(Wadfile, const char *, 4);
 
 #define readwad_at(address, offset) ((const void *)((const uint8_t *)(address) + (offset)))
 
 struct readwad_args {
-	const char *wadfile;
+	struct m_arrayWadfile wadfiles;
 	unsigned verbosity;
 };
 
@@ -101,7 +104,6 @@ readwad_usage(const char *readwad_name) {
 static const struct readwad_args
 readwad_parse_args(int argc, char **argv) {
 	struct readwad_args args = {
-		.wadfile = "doom1.wad",
 		.verbosity = 0,
 	};
 	int c;
@@ -109,7 +111,7 @@ readwad_parse_args(int argc, char **argv) {
 	while((c = getopt(argc, argv, ":i:v")) != -1) {
 		switch(c) {
 		case 'i':
-			args.wadfile = optarg;
+			M_ArrayWadfileAppend(&args.wadfiles, optarg);
 			break;
 		case 'v':
 			args.verbosity++;
@@ -134,10 +136,9 @@ int
 main(int argc, char **argv) {
 	const struct readwad_args args = readwad_parse_args(argc, argv);
 	char **current = argv + optind, ** const end = argv + argc;
-	const char * const wadfiles[] = { args.wadfile, NULL };
 
 	puts("Read WAD");
-	W_Init(wadfiles);
+	W_Init(args.wadfiles.begin, args.wadfiles.end);
 
 	while(current != end) {
 		const char *name = *current;

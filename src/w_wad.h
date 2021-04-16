@@ -208,7 +208,7 @@ typedef int32_t lumpId_t; /* Id used for loaded lumps */
 
 /* Load WAD files and adds lumps according to array order */
 void
-W_Init(const char * const *files);
+W_Init(const char * const *begin, const char * const *end);
 
 /* Looks up lump id for name, returns -1 if missing */
 lumpId_t
