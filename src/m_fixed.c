@@ -17,16 +17,13 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "stdlib.h"
+#include "m_fixed.h"
 
-#include "doomtype.h"
 #include "i_system.h"
 #include "i_error.h"
 
-#ifdef __GNUG__
-#pragma implementation "m_fixed.h"
-#endif
-#include "m_fixed.h"
+#include <stdlib.h>
+#include <limits.h>
 
 // Fixme. __USE_C_FIXED__ or something.
 
@@ -44,7 +41,7 @@ fixed_t
 FixedDiv(fixed_t a,
 	fixed_t b) {
 	if((abs(a) >> 14) >= abs(b))
-		return (a ^ b) < 0 ? MININT : MAXINT;
+		return (a ^ b) < 0 ? INT_MIN : INT_MAX;
 	return FixedDiv2(a, b);
 }
 

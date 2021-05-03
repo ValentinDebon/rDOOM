@@ -17,8 +17,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <stdlib.h>
-
 #include "i_system.h"
 #include "i_error.h"
 
@@ -27,6 +25,9 @@
 
 #include "r_local.h"
 #include "r_sky.h"
+
+#include <stdlib.h>
+#include <limits.h>
 
 // OPTIMIZE: closed two sided lines as single sided
 
@@ -142,7 +143,7 @@ R_RenderMaskedSegRange(drawseg_t *ds,
 	// draw the columns
 	for(dc_x = x1; dc_x <= x2; dc_x++) {
 		// calculate lighting
-		if(maskedtexturecol[dc_x] != MAXSHORT) {
+		if(maskedtexturecol[dc_x] != SHRT_MAX) {
 			if(!fixedcolormap) {
 				index = spryscale >> LIGHTSCALESHIFT;
 
@@ -159,7 +160,7 @@ R_RenderMaskedSegRange(drawseg_t *ds,
 			col = (column_t *)((uint8_t *)R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
 
 			R_DrawMaskedColumn(col);
-			maskedtexturecol[dc_x] = MAXSHORT;
+			maskedtexturecol[dc_x] = SHRT_MAX;
 		}
 		spryscale += rw_scalestep;
 	}
@@ -413,8 +414,8 @@ R_StoreWallRange(int start,
 		ds_p->silhouette    = SIL_BOTH;
 		ds_p->sprtopclip    = screenheightarray;
 		ds_p->sprbottomclip = negonearray;
-		ds_p->bsilheight    = MAXINT;
-		ds_p->tsilheight    = MININT;
+		ds_p->bsilheight    = INT_MAX;
+		ds_p->tsilheight    = INT_MIN;
 	} else {
 		// two sided line
 		ds_p->sprtopclip = ds_p->sprbottomclip = NULL;
@@ -425,7 +426,7 @@ R_StoreWallRange(int start,
 			ds_p->bsilheight = frontsector->floor_height;
 		} else if(backsector->floor_height > viewz) {
 			ds_p->silhouette = SIL_BOTTOM;
-			ds_p->bsilheight = MAXINT;
+			ds_p->bsilheight = INT_MAX;
 			// ds_p->sprbottomclip = negonearray;
 		}
 
@@ -434,19 +435,19 @@ R_StoreWallRange(int start,
 			ds_p->tsilheight = frontsector->ceiling_height;
 		} else if(backsector->ceiling_height < viewz) {
 			ds_p->silhouette |= SIL_TOP;
-			ds_p->tsilheight = MININT;
+			ds_p->tsilheight = INT_MIN;
 			// ds_p->sprtopclip = screenheightarray;
 		}
 
 		if(backsector->ceiling_height <= frontsector->floor_height) {
 			ds_p->sprbottomclip = negonearray;
-			ds_p->bsilheight    = MAXINT;
+			ds_p->bsilheight    = INT_MAX;
 			ds_p->silhouette |= SIL_BOTTOM;
 		}
 
 		if(backsector->floor_height >= frontsector->ceiling_height) {
 			ds_p->sprtopclip = screenheightarray;
-			ds_p->tsilheight = MININT;
+			ds_p->tsilheight = INT_MIN;
 			ds_p->silhouette |= SIL_TOP;
 		}
 
@@ -628,11 +629,11 @@ R_StoreWallRange(int start,
 
 	if(maskedtexture && !(ds_p->silhouette & SIL_TOP)) {
 		ds_p->silhouette |= SIL_TOP;
-		ds_p->tsilheight = MININT;
+		ds_p->tsilheight = INT_MIN;
 	}
 	if(maskedtexture && !(ds_p->silhouette & SIL_BOTTOM)) {
 		ds_p->silhouette |= SIL_BOTTOM;
-		ds_p->bsilheight = MAXINT;
+		ds_p->bsilheight = INT_MAX;
 	}
 	ds_p++;
 }

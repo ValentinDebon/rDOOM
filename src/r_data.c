@@ -37,11 +37,9 @@
 #include "doomstat.h"
 #include "r_sky.h"
 
-#ifdef LINUX
-#include <alloca.h>
-#endif
-
 #include "r_data.h"
+
+#include <alloca.h>
 
 //
 // Graphics.
@@ -289,7 +287,7 @@ R_GenerateLookup(int texnum) {
 	//  that are covered by more than one patch.
 	// Fill in the lump / offset, so columns
 	//  with only a single patch are all done.
-	patchcount = (uint8_t *)alloca(texture->width);
+	patchcount = alloca(texture->width);
 	memset(patchcount, 0, texture->width);
 	patch = texture->patches;
 

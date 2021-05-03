@@ -18,8 +18,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <stdint.h>
-
 #include "m_menu.h"
 #include "i_system.h"
 #include "i_error.h"
@@ -28,6 +26,8 @@
 #include "g_game.h"
 #include "doomdef.h"
 #include "doomstat.h"
+
+#include <limits.h>
 
 #define NCMD_EXIT 0x80000000
 #define NCMD_RETRANSMIT 0x40000000
@@ -96,9 +96,7 @@ NetbufferChecksum(void) {
 	c = 0x1234567;
 
 	// FIXME -endianess?
-#ifdef NORMALUNIX
 	return 0; // byte order problems
-#endif
 
 	l = (NetbufferSize() - (intptr_t) & (((doomdata_t *)0)->retransmitfrom)) / 4;
 	for(i = 0; i < l; i++)
@@ -597,7 +595,7 @@ TryRunTics(void) {
 	// get available tics
 	NetUpdate();
 
-	lowtic     = MAXINT;
+	lowtic     = INT_MAX;
 	numplaying = 0;
 	for(i = 0; i < doomcom->numnodes; i++) {
 		if(nodeingame[i]) {
@@ -653,7 +651,7 @@ TryRunTics(void) {
 	// wait for new tics if needed
 	while(lowtic < gametic / ticdup + counts) {
 		NetUpdate();
-		lowtic = MAXINT;
+		lowtic = INT_MAX;
 
 		for(i = 0; i < doomcom->numnodes; i++)
 			if(nodeingame[i] && nettics[i] < lowtic)

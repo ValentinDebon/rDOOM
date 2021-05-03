@@ -40,6 +40,8 @@
 
 #include "am_map.h"
 
+#include <limits.h>
+
 // For use if I do walls with outsides/insides
 #define REDS (256 - 5 * 16)
 #define REDRANGE 16
@@ -296,11 +298,11 @@ AM_getIslope(mline_t *ml,
 	dy = ml->a.y - ml->b.y;
 	dx = ml->b.x - ml->a.x;
 	if(!dy)
-		is->islp = (dx < 0 ? -MAXINT : MAXINT);
+		is->islp = (dx < 0 ? -INT_MAX : INT_MAX);
 	else
 		is->islp = FixedDiv(dx, dy);
 	if(!dx)
-		is->slp = (dy < 0 ? -MAXINT : MAXINT);
+		is->slp = (dy < 0 ? -INT_MAX : INT_MAX);
 	else
 		is->slp = FixedDiv(dy, dx);
 }
@@ -374,8 +376,8 @@ AM_findMinMaxBoundaries(void) {
 	fixed_t a;
 	fixed_t b;
 
-	min_x = min_y = MAXINT;
-	max_x = max_y = -MAXINT;
+	min_x = min_y = INT_MAX;
+	max_x = max_y = -INT_MAX;
 
 	for(i = 0; i < p_level.vertices_count; i++) {
 		if(p_level.vertices[i].x < min_x)
@@ -409,7 +411,7 @@ void
 AM_changeWindowLoc(void) {
 	if(m_paninc.x || m_paninc.y) {
 		followplayer = 0;
-		f_oldloc.x   = MAXINT;
+		f_oldloc.x   = INT_MAX;
 	}
 
 	m_x += m_paninc.x;
@@ -440,7 +442,7 @@ AM_initVariables(void) {
 	automapactive = true;
 	fb            = screens[0];
 
-	f_oldloc.x = MAXINT;
+	f_oldloc.x = INT_MAX;
 	amclock    = 0;
 	lightlev   = 0;
 
@@ -641,7 +643,7 @@ AM_Responder(event_t *ev) {
 			break;
 		case AM_FOLLOWKEY:
 			followplayer = !followplayer;
-			f_oldloc.x   = MAXINT;
+			f_oldloc.x   = INT_MAX;
 			plr->message = L_String(STRING_AM_FOLLOWON + (followplayer == 0));
 			break;
 		case AM_GRIDKEY:

@@ -187,9 +187,7 @@ extern int showMessages;
 // machine-independent sound params
 extern int numChannels;
 
-#ifdef NORMALUNIX
 extern int mb_used;
-#endif
 
 extern const char *chat_macros[];
 
@@ -206,7 +204,6 @@ default_t defaults[] = {
 	{ "music_volume", &snd_MusicVolume, 8 },
 	{ "show_messages", &showMessages, 1 },
 
-#ifdef NORMALUNIX
 	{ "key_right", &key_right, KEY_RIGHTARROW },
 	{ "key_left", &key_left, KEY_LEFTARROW },
 	{ "key_up", &key_up, KEY_UPARROW },
@@ -220,7 +217,6 @@ default_t defaults[] = {
 	{ "key_speed", &key_speed, KEY_RSHIFT },
 
 	{ "mb_used", &mb_used, 2 },
-#endif
 
 	{ "use_mouse", &usemouse, 1 },
 	{ "mouseb_fire", &mousebfire, 0 },

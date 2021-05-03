@@ -72,3 +72,7 @@ It may be time to add some new files in `M_*` to remove the engine's limitations
 Just created a template system for arrays. Testing it in `W_*`, it's pretty neat, and the machine code duplication should be negligible in memory space.
 It might be the solution for all limitations removals. And even if the header code is pretty unreadable, it inserts nicely in the C source files.
 It might also be a solution to easily regroup all allocations in the `Z_*` module, effectively limiting memory usage explicitly.
+
+## Portability
+Once again, portability issues while working on macOS. Removed `NORMALUNIX` and `LINUX`. `NORMALUNIX` shouldn't be need as we only target these systems.
+Turns out `LINUX` only existed to extend min/max definitions of `doomtype.h`, whose purpose could be overseeded by the use of `limits.h`.

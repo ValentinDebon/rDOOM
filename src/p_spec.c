@@ -331,7 +331,7 @@ P_FindLowestCeilingSurrounding(const struct p_sector *sec) {
 	int i;
 	const struct p_line *check;
 	const struct p_sector *other;
-	fixed_t height = MAXINT;
+	fixed_t height = INT_MAX;
 
 	for(i = 0; i < sec->lines_count; i++) {
 		check = sec->lines[i];

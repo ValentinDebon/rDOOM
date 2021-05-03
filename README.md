@@ -13,6 +13,8 @@ I released the repository at the first runtime error I encountered (not segfault
 - [ ] Remove arbitrary limitations.
 - [ ] Hunt down awful C hacks.
 - [ ] Regroup global variables in "namespaces" structs.
+- [ ] Review option parsing.
+- [ ] Make real arithmetic tunable between fixed and floating point.
 - [ ] Implement Pulseaudio-backed audio.
 - [ ] Implement remote rendering system.
 

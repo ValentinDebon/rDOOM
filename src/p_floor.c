@@ -29,6 +29,8 @@
 // Data.
 #include "sounds.h"
 
+#include <limits.h>
+
 //
 // FLOORS
 //
@@ -316,7 +318,7 @@ EV_DoFloor(const struct p_line *line,
 			break;
 
 		case raiseToTexture: {
-			int minsize = MAXINT;
+			int minsize = INT_MAX;
 			const struct p_side *side;
 
 			floor->direction = 1;

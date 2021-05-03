@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct __attribute__((packed)) w_lump_D_x {
+struct WAD w_lump_D_x {
 	uint8_t magic[4];
 	uint16_t size;
 	uint16_t offset;
@@ -117,8 +117,7 @@ I_UnRegisterSong(int handle) {
 }
 
 void
-I_PlaySong(int handle,
-	int looping) {
+I_PlaySong(int handle, int looping) {
 }
 
 void

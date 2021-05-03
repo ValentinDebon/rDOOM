@@ -17,10 +17,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __P_LOCAL__
-#define __P_LOCAL__
-
-#include <stdbool.h>
+#ifndef RDOOM_P_LOCAL_H
+#define RDOOM_P_LOCAL_H
 
 #include "d_think.h"
 #include "d_player.h"
@@ -28,6 +26,8 @@
 #include "m_fixed.h"
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <limits.h>
 
 #define FLOATSPEED (FRACUNIT * 4)
 
@@ -272,8 +272,8 @@ P_PlayerThink(player_t *player);
 //
 // P_MOBJ
 //
-#define ONFLOORZ MININT
-#define ONCEILINGZ MAXINT
+#define ONFLOORZ INT_MIN
+#define ONCEILINGZ INT_MAX
 
 // Time interval for item respawning.
 #define ITEMQUESIZE 128
@@ -512,4 +512,5 @@ P_DamageMobj(mobj_t *target,
 //
 #include "p_spec.h"
 
-#endif // __P_LOCAL__
+/* RDOOM_P_LOCAL_H */
+#endif

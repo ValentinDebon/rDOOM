@@ -20,7 +20,6 @@
 
 #include <stdbool.h>
 
-#include "doomtype.h"
 //
 // MISC
 //
