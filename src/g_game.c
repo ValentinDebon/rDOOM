@@ -24,7 +24,7 @@
 
 #include "z_zone.h"
 #include "f_finale.h"
-#include "m_argv.h"
+#include "m_param.h"
 #include "m_misc.h"
 #include "m_menu.h"
 #include "m_random.h"
@@ -1119,7 +1119,7 @@ R_ExecuteSetViewSize(void);
 char savename[256];
 
 void
-G_LoadGame(char *name) {
+G_LoadGame(const char *name) {
 	strcpy(savename, name);
 	gameaction = ga_loadgame;
 }
@@ -1200,10 +1200,7 @@ G_DoSaveGame(void) {
 	int length;
 	int i;
 
-	if(M_CheckParm("-cdrom"))
-		sprintf(name, "c:\\doomdata\\" SAVEGAMENAME "%d.dsg", savegameslot);
-	else
-		sprintf(name, SAVEGAMENAME "%d.dsg", savegameslot);
+	sprintf(name, SAVEGAMENAME "%d.dsg", savegameslot);
 	description = savedescription;
 
 	save_p = savebuffer = screens[1] + 0x4000;
@@ -1421,17 +1418,17 @@ G_WriteDemoTiccmd(ticcmd_t *cmd) {
 // G_RecordDemo
 //
 void
-G_RecordDemo(char *name) {
-	int i;
-	int maxsize;
+G_RecordDemo(const char *name) {
 
 	usergame = false;
 	strcpy(demoname, name);
 	strcat(demoname, ".lmp");
-	maxsize = 0x20000;
-	i       = M_CheckParm("-maxdemo");
-	if(i && i < myargc - 1)
-		maxsize = atoi(myargv[i + 1]) * 1024;
+
+	int maxsize = 0x20000;
+	if(M_GetNumericParam("maxdemo", 1, INT_MAX, &maxsize)) {
+		maxsize *= 1024;
+	}
+
 	demobuffer = Z_Malloc(maxsize, PU_STATIC, NULL);
 	demoend    = demobuffer + maxsize;
 
@@ -1462,10 +1459,10 @@ G_BeginRecording(void) {
 // G_PlayDemo
 //
 
-char *defdemoname;
+const char *defdemoname;
 
 void
-G_DeferedPlayDemo(char *name) {
+G_DeferedPlayDemo(const char *name) {
 	defdemoname = name;
 	gameaction  = ga_playdemo;
 }
@@ -1477,8 +1474,8 @@ G_DoPlayDemo(void) {
 	skill_t skill;
 
 	gameaction = ga_nothing;
-	demobuffer = demo_p = Z_Malloc(lump->size, PU_STATIC, NULL);
-	memcpy(demobuffer, lump->data, lump->size);
+	demobuffer = demo_p = (uint8_t *)lump->data;
+
 	if(*demo_p++ > VERSION) {
 		fprintf(stderr, "Demo is from a different game version!\n");
 		gameaction = ga_nothing;
@@ -1514,9 +1511,9 @@ G_DoPlayDemo(void) {
 // G_TimeDemo
 //
 void
-G_TimeDemo(char *name) {
-	nodrawers  = M_CheckParm("-nodraw");
-	noblit     = M_CheckParm("-noblit");
+G_TimeDemo(const char *name) {
+	nodrawers  = M_CheckParam("nodraw");
+	noblit     = M_CheckParam("noblit");
 	timingdemo = true;
 	singletics = true;
 
@@ -1547,7 +1544,6 @@ G_CheckDemoStatus(void) {
 		if(singledemo)
 			I_Quit();
 
-		Z_ChangeTag(demobuffer, PU_CACHE);
 		demoplayback    = false;
 		netdemo         = false;
 		netgame         = false;

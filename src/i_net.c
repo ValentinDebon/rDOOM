@@ -32,7 +32,7 @@
 #include "i_error.h"
 #include "d_event.h"
 #include "d_net.h"
-#include "m_argv.h"
+#include "m_param.h"
 
 #include "doomstat.h"
 
@@ -214,32 +214,22 @@ I_InitNetwork(void) {
 	memset(doomcom, 0, sizeof(*doomcom));
 
 	// set up for network
-	i = M_CheckParm("-dup");
-	if(i && i < myargc - 1) {
-		doomcom->ticdup = myargv[i + 1][0] - '0';
-		if(doomcom->ticdup < 1)
-			doomcom->ticdup = 1;
-		if(doomcom->ticdup > 9)
-			doomcom->ticdup = 9;
-	} else
-		doomcom->ticdup = 1;
+	int ticdup = 1;
+	M_GetNumericParam("dup", 1, 9, &ticdup);
+	doomcom->ticdup = ticdup;
 
-	if(M_CheckParm("-extratic"))
-		doomcom->extratics = 1;
-	else
-		doomcom->extratics = 0;
+	doomcom->extratics = M_CheckParam("extratic");
 
-	p = M_CheckParm("-port");
-	if(p && p < myargc - 1) {
-		DOOMPORT = atoi(myargv[p + 1]);
+	if(M_GetNumericParam("port", 0, UINT16_MAX, &DOOMPORT)) {
 		printf("using alternate port %i\n", DOOMPORT);
 	}
 
-	// parse network game options,
-	//  -net <consoleplayer> <host> <host> ...
-	i = M_CheckParm("-net");
-	if(!i) {
-		// single player game
+	/* parse network game options
+	 *  -net <consoleplayer>:<host>:<host>...
+	 */
+	const char *netparam;
+	if(!M_GetValueParam("net", &netparam)) {
+		/* Single player game */
 		netgame             = false;
 		doomcom->id         = DOOMCOM_ID;
 		doomcom->numplayers = doomcom->numnodes = 1;
@@ -248,6 +238,9 @@ I_InitNetwork(void) {
 		return;
 	}
 
+	/* TODO */
+	I_Error("Net game not (yet) available!");
+#if 0
 	netsend = PacketSend;
 	netget  = PacketGet;
 	netgame = true;
@@ -283,6 +276,7 @@ I_InitNetwork(void) {
 	ioctl(insocket, FIONBIO, &trueval);
 
 	sendsocket = UDPsocket();
+#endif
 }
 
 void

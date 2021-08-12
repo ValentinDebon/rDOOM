@@ -29,7 +29,7 @@
 #include "i_system.h"
 #include "i_error.h"
 #include "z_zone.h"
-#include "m_argv.h"
+#include "m_param.h"
 #include "m_random.h"
 #include "w_wad.h"
 
@@ -139,14 +139,16 @@ P_InitPicAnims(void) {
 	for(i = 0; i < sizeof(animdefs) / sizeof(*animdefs); i++) {
 		if(animdefs[i].istexture) {
 			// different episode ?
-			if(R_CheckTextureNumForName(animdefs[i].startname) == -1)
+			if(R_CheckTextureNumForName(animdefs[i].startname) < 0) {
 				continue;
+			}
 
 			lastanim->picnum  = R_TextureIdForName(animdefs[i].endname);
 			lastanim->basepic = R_TextureIdForName(animdefs[i].startname);
 		} else {
-			if(W_FindIdForName(animdefs[i].startname) == -1)
+			if(W_FindIdForName(animdefs[i].startname) < 0) {
 				continue;
+			}
 
 			lastanim->picnum  = R_FlatIdForName(animdefs[i].endname);
 			lastanim->basepic = R_FlatIdForName(animdefs[i].startname);
@@ -1137,18 +1139,15 @@ P_SpawnSpecials(void) {
 	// See if -TIMER needs to be used.
 	levelTimer = false;
 
-	i = M_CheckParm("-avg");
-	if(i && deathmatch) {
+	if(M_CheckParam("avg") && deathmatch) {
 		levelTimer     = true;
 		levelTimeCount = 20 * 60 * 35;
 	}
 
-	i = M_CheckParm("-timer");
-	if(i && deathmatch) {
-		int time;
-		time           = atoi(myargv[i + 1]) * 60 * 35;
+	int timer;
+	if(M_GetNumericParam("timer", 0, INT_MAX, &timer) && deathmatch) {
 		levelTimer     = true;
-		levelTimeCount = time;
+		levelTimeCount = timer;
 	}
 
 	//	Init special SECTORs.

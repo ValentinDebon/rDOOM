@@ -372,8 +372,7 @@ Z_CheckHeap(void) {
 // Z_ChangeTag
 //
 void
-Z_ChangeTag2(void *ptr,
-	int tag) {
+Z_ChangeTag2(void *ptr, int tag) {
 	memblock_t *block;
 
 	block = (memblock_t *)((uint8_t *)ptr - sizeof(memblock_t));

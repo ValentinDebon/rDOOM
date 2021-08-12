@@ -76,3 +76,17 @@ It might also be a solution to easily regroup all allocations in the `Z_*` modul
 ## Portability
 Once again, portability issues while working on macOS. Removed `NORMALUNIX` and `LINUX`. `NORMALUNIX` shouldn't be need as we only target these systems.
 Turns out `LINUX` only existed to extend min/max definitions of `doomtype.h`, whose purpose could be overseeded by the use of `limits.h`.
+
+## Main loop revision?
+Networking becoming a critical part of rDOOM (handling rendering, netgame, and in the future, sound), the main loop may be revised
+to optimize network polling. The net code seems pretty broken from there, a big dive will be necessary to understands its deep internals.
+Will also need heavy profiling for the engine's resources usage. Must do this before heavy changes in the engine's logic.
+
+## Argument parsing
+The argument parsing was pretty hacky, and some options may be considered deprecated. To avoid more internal bleeding through
+weird argument parsing hacks, it was revised to use `getopt_long_only` in `i_main.c` and forward declarations in a new `m_param.c` interface.
+Also eases numerical argument parsing. As net options are not parsed the same way anymore, Net games are deactivated until main loop revision.
+Also turns out savegame name is duplicated everywhere, will create a function to get it according to a slot and system settings (XDG?).
+Took advantage of the occasion to update defaults parsing once and for all, only a review will be necessary once all globals are regrouped.
+Found a bug! Left a `Z_ChangeTag` for demo playback, effectively crashing at each demo end. Doing an unsafe copy of the demo lump's data pointer for now.
+Must create two separate `demo_p` when refactoring `g_game.c`.

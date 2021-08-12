@@ -116,15 +116,12 @@ W_Init(const char * const *begin, const char * const *end) {
 
 lumpId_t
 W_FindIdForName(const char *name) {
-	const struct w_lump *lumpsend = w_wad.lumps.end;
+	const struct w_lump * const lumps = w_wad.lumps.begin;
+	lumpId_t id = w_wad.lumps.end - w_wad.lumps.begin;
 
-	while(--lumpsend >= w_wad.lumps.begin) {
-		if(strncasecmp(lumpsend->name, name, sizeof(lumpsend->name)) == 0) {
-			return lumpsend - w_wad.lumps.begin;
-		}
-	}
+	while(--id != -1 && strncasecmp(lumps[id].name, name, sizeof(lumps[id].name)) != 0);
 
-	return -1;
+	return id;
 }
 
 lumpId_t

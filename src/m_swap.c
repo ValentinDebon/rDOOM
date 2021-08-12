@@ -23,7 +23,7 @@
 I wonder if this was corrected in the Jaguar release. Which, if I recall, had an M68K */
 
 /* Not needed with little endian. */
-#ifdef __BIG_ENDIAN__
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 
 /* Swap 16bit, that is, MSB and LSB byte. */
 uint16_t

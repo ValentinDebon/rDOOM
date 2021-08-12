@@ -33,9 +33,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined(__has_attribute) && __has_attribute(packed)
+#ifdef __has_attribute
+#if __has_attribute(packed)
 #define WAD __attribute__((packed))
-#else
+#endif
+#endif
+
+#ifndef WAD
 #warning "Packed attribute not available, WAD parsing might not work correctly"
 #define WAD
 #endif

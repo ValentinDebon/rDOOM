@@ -39,12 +39,12 @@ void
 G_DeferedInitNew(skill_t skill, int episode, int map);
 
 void
-G_DeferedPlayDemo(char *demo);
+G_DeferedPlayDemo(const char *demo);
 
 // Can be called by the startup code or M_Responder,
 // calls P_SetupLevel or W_EnterWorld.
 void
-G_LoadGame(char *name);
+G_LoadGame(const char *name);
 
 void
 G_DoLoadGame(void);
@@ -55,15 +55,15 @@ G_SaveGame(int slot, char *description);
 
 // Only called by startup code.
 void
-G_RecordDemo(char *name);
+G_RecordDemo(const char *name);
 
 void
 G_BeginRecording(void);
 
 void
-G_PlayDemo(char *name);
+G_PlayDemo(const char *name);
 void
-G_TimeDemo(char *name);
+G_TimeDemo(const char *name);
 bool
 G_CheckDemoStatus(void);
 

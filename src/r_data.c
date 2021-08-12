@@ -326,8 +326,7 @@ R_GenerateLookup(int texnum) {
 			colofs[x]  = texturecompositesize[texnum];
 
 			if(texturecompositesize[texnum] > 0x10000 - texture->height) {
-				I_Error("R_GenerateLookup: texture %i is >64k",
-					texnum);
+				I_Error("R_GenerateLookup: texture %i is >64k", texnum);
 			}
 
 			texturecompositesize[texnum] += texture->height;
@@ -444,6 +443,7 @@ R_InitTextures(void) {
 	temp1 = W_FindIdForName("S_START"); // P_???????
 	temp2 = W_FindIdForName("S_END") - 1;
 	temp3 = ((temp2 - temp1 + 63) / 64) + ((numtextures + 63) / 64);
+#if 0
 	printf("[");
 	for(i = 0; i < temp3; i++)
 		printf(" ");
@@ -451,10 +451,13 @@ R_InitTextures(void) {
 	for(i = 0; i < temp3; i++)
 		printf("\x8");
 	printf("\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8");
+#endif
 
 	for(i = 0; i < numtextures; i++, directory++) {
+#if 0
 		if(!(i & 63))
 			printf(".");
+#endif
 
 		if(i == numtextures1) {
 			// Start looking in second texture file.
@@ -552,8 +555,10 @@ R_InitSpriteLumps(void) {
 	spritetopoffset = Z_Malloc(numspritelumps * 4, PU_STATIC, 0);
 
 	for(i = 0; i < numspritelumps; i++) {
+#if 0
 		if(!(i & 63))
 			printf(".");
+#endif
 
 		patch              = W_LumpForId(firstspritelump + i)->data;
 		spritewidth[i]     = (fixed_t)LE_U16(patch->width) << FRACBITS;
@@ -579,13 +584,13 @@ R_InitColormaps(void) {
 void
 R_InitData(void) {
 	R_InitTextures();
-	printf("\nInitTextures");
+	puts("InitTextures");
 	R_InitFlats();
-	printf("\nInitFlats");
+	puts("InitFlats");
 	R_InitSpriteLumps();
-	printf("\nInitSprites");
+	puts("InitSprites");
 	R_InitColormaps();
-	printf("\nInitColormaps");
+	puts("InitColormaps");
 }
 
 //

@@ -30,8 +30,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define POINTER_WARP_COUNTDOWN 5
-
 int mb_used = 6;
 
 void
@@ -72,15 +70,9 @@ I_StartTic(void) {
 	}
 
 	if(i_xcb.grab_mouse != 0) {
-		static int pointer_warp = POINTER_WARP_COUNTDOWN;
-
-		if(!--pointer_warp) {
-			xcb_warp_pointer(i_xcb.connection, XCB_WINDOW_NONE, i_xcb.window.drawable,
-				0, 0, 0, 0, i_xcb.window.width / 2, i_xcb.window.height / 2);
-
-			pointer_warp = POINTER_WARP_COUNTDOWN;
-			flush++;
-		}
+		xcb_warp_pointer(i_xcb.connection, XCB_WINDOW_NONE, i_xcb.window.drawable,
+			0, 0, 0, 0, i_xcb.window.width / 2, i_xcb.window.height / 2);
+		flush++;
 	}
 
 	if(flush != 0) {
@@ -98,7 +90,6 @@ I_BaseTiccmd(void) {
 noreturn void
 I_Quit(void) {
 	D_QuitNetGame();
-	M_SaveDefaults();
 	exit(EXIT_SUCCESS);
 }
 

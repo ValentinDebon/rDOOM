@@ -40,18 +40,7 @@
 #define HU_INPUTTOGGLE 't'
 
 /* Chat macros are filled in by m_misc in M_LoadDefaults */
-const char *chat_macros[] = {
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	""
-};
+char *chat_macros[10];
 
 char chat_char; // remove later.
 static player_t *plr;

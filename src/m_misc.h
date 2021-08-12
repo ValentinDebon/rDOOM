@@ -12,17 +12,31 @@
 // FITNESS FOR A PARTICULAR PURPOSE. See the DOOM Source Code License
 // for more details.
 //
-//
 //-----------------------------------------------------------------------------
 
-#ifndef __M_MISC__
-#define __M_MISC__
+#ifndef RDOOM_M_MISC_H
+#define RDOOM_M_MISC_H
+
+#ifdef __has_attribute
+#if __has_attribute(format)
+#define PRINTF_LIKE(x, y) __attribute__((format(printf, x, y)))
+#endif
+#endif
+
+#ifndef PRINTF_LIKE
+#define PRINTF_LIKE(x, y)
+#endif
 
 #include <stdbool.h>
 
-//
-// MISC
-//
+void
+M_LoadDefaults(void);
+
+const char *
+M_Savefile(int slot);
+
+const char * PRINTF_LIKE(2, 3)
+M_Format(size_t *lenp, const char *format, ...);
 
 bool
 M_WriteFile(char const *name,
@@ -36,16 +50,11 @@ M_ReadFile(char const *name,
 void
 M_ScreenShot(void);
 
-void
-M_LoadDefaults(void);
-
-void
-M_SaveDefaults(void);
-
 int
 M_DrawText(int x,
 	int y,
 	bool direct,
 	char *string);
 
+/* RDOOM_M_MISC_H */
 #endif

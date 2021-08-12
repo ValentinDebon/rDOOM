@@ -19,7 +19,7 @@
 #include <stdnoreturn.h>
 
 noreturn void
-I_Error(char *error, ...);
+I_Error(const char *error, ...);
 
 /* RDOOM_I_ERROR_H */
 #endif

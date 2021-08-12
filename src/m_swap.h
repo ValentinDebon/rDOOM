@@ -26,14 +26,14 @@
  * WAD files are stored little endian.
  */
 
-#if defined(__LITTLE_ENDIAN__)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
 #define LE_U16(x) ((uint16_t)(x))
 #define LE_S16(x) ((int16_t)(x))
 #define LE_U32(x) ((uint32_t)(x))
 #define LE_S32(x) ((int32_t)(x))
 
-#elif defined(__BIG_ENDIAN__)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 
 uint16_t
 SwapU16(uint16_t value);

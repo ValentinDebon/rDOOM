@@ -22,18 +22,8 @@
 
 #include "d_event.h"
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
-//
-// D_DoomMain()
-// Not a globally visible function, just included for source reference,
-// calls all startup code, parses command line options.
-// If not overrided by user input, calls N_AdvanceDemo.
-//
 void
-D_DoomMain(void);
+D_DoomMain(char **files, char **filesend);
 
 // Called by IO functions when input is detected.
 void

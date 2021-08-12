@@ -20,12 +20,11 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <sys/stat.h>
 #include <unistd.h>
-
+#include <fcntl.h>
 #include <ctype.h>
 
 #include "doomdef.h"
@@ -33,7 +32,7 @@
 #include "z_zone.h"
 
 #include "m_swap.h"
-#include "m_argv.h"
+#include "m_param.h"
 
 #include "w_wad.h"
 
@@ -52,6 +51,123 @@
 // Data.
 
 #include "m_misc.h"
+
+struct m_defaultNumeric {
+	const char *name;
+	int *location;
+	int defaultvalue;
+};
+
+struct m_defaultString {
+	const char *name;
+	char **location;
+	enum l_string defaultvalue;
+};
+
+/* Imported Defaults */
+int usemouse;
+int usejoystick;
+
+extern int key_right;
+extern int key_left;
+extern int key_up;
+extern int key_down;
+
+extern int key_strafeleft;
+extern int key_straferight;
+
+extern int key_fire;
+extern int key_use;
+extern int key_strafe;
+extern int key_speed;
+
+extern int mousebfire;
+extern int mousebstrafe;
+extern int mousebforward;
+
+extern int joybfire;
+extern int joybstrafe;
+extern int joybuse;
+extern int joybspeed;
+
+extern int viewwidth;
+extern int viewheight;
+
+extern int mouseSensitivity;
+extern int showMessages;
+
+extern int detailLevel;
+
+extern int screenblocks;
+
+extern int showMessages;
+
+extern int numChannels;
+
+extern int mb_used;
+
+extern char *chat_macros[];
+
+static struct m_misc {
+	struct {
+		char *file;
+		struct m_defaultNumeric numerics[28];
+		struct m_defaultString strings[10];
+	} defaults;
+} m_misc = {
+	.defaults = {
+		.numerics = {
+			{ "mouse_sensitivity", &mouseSensitivity, 5 },
+			{ "sfx_volume", &snd_SfxVolume, 8 },
+			{ "music_volume", &snd_MusicVolume, 8 },
+			{ "show_messages", &showMessages, 1 },
+
+			{ "key_right", &key_right, KEY_RIGHTARROW },
+			{ "key_left", &key_left, KEY_LEFTARROW },
+			{ "key_up", &key_up, KEY_UPARROW },
+			{ "key_down", &key_down, KEY_DOWNARROW },
+			{ "key_strafeleft", &key_strafeleft, ',' },
+			{ "key_straferight", &key_straferight, '.' },
+
+			{ "key_fire", &key_fire, KEY_RCTRL },
+			{ "key_use", &key_use, ' ' },
+			{ "key_strafe", &key_strafe, KEY_RALT },
+			{ "key_speed", &key_speed, KEY_RSHIFT },
+
+			{ "mb_used", &mb_used, 2 },
+
+			{ "use_mouse", &usemouse, 1 },
+			{ "mouseb_fire", &mousebfire, 0 },
+			{ "mouseb_strafe", &mousebstrafe, 1 },
+			{ "mouseb_forward", &mousebforward, 2 },
+
+			{ "use_joystick", &usejoystick, 0 },
+			{ "joyb_fire", &joybfire, 0 },
+			{ "joyb_strafe", &joybstrafe, 1 },
+			{ "joyb_use", &joybuse, 3 },
+			{ "joyb_speed", &joybspeed, 2 },
+
+			{ "screenblocks", &screenblocks, 9 },
+			{ "detaillevel", &detailLevel, 0 },
+
+			{ "snd_channels", &numChannels, 3 },
+
+			{ "usegamma", &usegamma, 0 },
+		},
+		.strings = {
+			{ "chatmacro0", chat_macros + 0, STRING_HU_CHATMACRO0 },
+			{ "chatmacro1", chat_macros + 1, STRING_HU_CHATMACRO1 },
+			{ "chatmacro2", chat_macros + 2, STRING_HU_CHATMACRO2 },
+			{ "chatmacro3", chat_macros + 3, STRING_HU_CHATMACRO3 },
+			{ "chatmacro4", chat_macros + 4, STRING_HU_CHATMACRO4 },
+			{ "chatmacro5", chat_macros + 5, STRING_HU_CHATMACRO5 },
+			{ "chatmacro6", chat_macros + 6, STRING_HU_CHATMACRO6 },
+			{ "chatmacro7", chat_macros + 7, STRING_HU_CHATMACRO7 },
+			{ "chatmacro8", chat_macros + 8, STRING_HU_CHATMACRO8 },
+			{ "chatmacro9", chat_macros + 9, STRING_HU_CHATMACRO9 },
+		},
+	},
+};
 
 //
 // M_DrawText
@@ -144,218 +260,110 @@ M_ReadFile(char const *name,
 	return length;
 }
 
-//
-// DEFAULTS
-//
-int usemouse;
-int usejoystick;
-
-extern int key_right;
-extern int key_left;
-extern int key_up;
-extern int key_down;
-
-extern int key_strafeleft;
-extern int key_straferight;
-
-extern int key_fire;
-extern int key_use;
-extern int key_strafe;
-extern int key_speed;
-
-extern int mousebfire;
-extern int mousebstrafe;
-extern int mousebforward;
-
-extern int joybfire;
-extern int joybstrafe;
-extern int joybuse;
-extern int joybspeed;
-
-extern int viewwidth;
-extern int viewheight;
-
-extern int mouseSensitivity;
-extern int showMessages;
-
-extern int detailLevel;
-
-extern int screenblocks;
-
-extern int showMessages;
-
-// machine-independent sound params
-extern int numChannels;
-
-extern int mb_used;
-
-extern const char *chat_macros[];
-
-typedef struct
-{
-	char *name;
-	int *location;
-	int defaultvalue;
-} default_t;
-
-default_t defaults[] = {
-	{ "mouse_sensitivity", &mouseSensitivity, 5 },
-	{ "sfx_volume", &snd_SfxVolume, 8 },
-	{ "music_volume", &snd_MusicVolume, 8 },
-	{ "show_messages", &showMessages, 1 },
-
-	{ "key_right", &key_right, KEY_RIGHTARROW },
-	{ "key_left", &key_left, KEY_LEFTARROW },
-	{ "key_up", &key_up, KEY_UPARROW },
-	{ "key_down", &key_down, KEY_DOWNARROW },
-	{ "key_strafeleft", &key_strafeleft, ',' },
-	{ "key_straferight", &key_straferight, '.' },
-
-	{ "key_fire", &key_fire, KEY_RCTRL },
-	{ "key_use", &key_use, ' ' },
-	{ "key_strafe", &key_strafe, KEY_RALT },
-	{ "key_speed", &key_speed, KEY_RSHIFT },
-
-	{ "mb_used", &mb_used, 2 },
-
-	{ "use_mouse", &usemouse, 1 },
-	{ "mouseb_fire", &mousebfire, 0 },
-	{ "mouseb_strafe", &mousebstrafe, 1 },
-	{ "mouseb_forward", &mousebforward, 2 },
-
-	{ "use_joystick", &usejoystick, 0 },
-	{ "joyb_fire", &joybfire, 0 },
-	{ "joyb_strafe", &joybstrafe, 1 },
-	{ "joyb_use", &joybuse, 3 },
-	{ "joyb_speed", &joybspeed, 2 },
-
-	{ "screenblocks", &screenblocks, 9 },
-	{ "detaillevel", &detailLevel, 0 },
-
-	{ "snd_channels", &numChannels, 3 },
-
-	{ "usegamma", &usegamma, 0 },
-};
-
-typedef struct
-{
-	char *name;
-	const char **location;
-	enum l_string defaultvalue;
-} default_str_t;
-
-default_str_t defaultstrs[] = {
-	{ "chatmacro0", chat_macros + 0, STRING_HU_CHATMACRO0 },
-	{ "chatmacro1", chat_macros + 1, STRING_HU_CHATMACRO1 },
-	{ "chatmacro2", chat_macros + 2, STRING_HU_CHATMACRO2 },
-	{ "chatmacro3", chat_macros + 3, STRING_HU_CHATMACRO3 },
-	{ "chatmacro4", chat_macros + 4, STRING_HU_CHATMACRO4 },
-	{ "chatmacro5", chat_macros + 5, STRING_HU_CHATMACRO5 },
-	{ "chatmacro6", chat_macros + 6, STRING_HU_CHATMACRO6 },
-	{ "chatmacro7", chat_macros + 7, STRING_HU_CHATMACRO7 },
-	{ "chatmacro8", chat_macros + 8, STRING_HU_CHATMACRO8 },
-	{ "chatmacro9", chat_macros + 9, STRING_HU_CHATMACRO9 }
-};
-
-int numdefaults;
-int numdefaultstrs;
-char *defaultfile;
-
-//
-// M_SaveDefaults
-//
-void
+static void
 M_SaveDefaults(void) {
-	int i;
-	int v;
-	const char *s;
-	FILE *f;
+	FILE *filep = fopen(m_misc.defaults.file, "w");
 
-	f = fopen(defaultfile, "w");
-	if(!f)
-		return; // can't write the file, but don't complain
-
-	for(i = 0; i < numdefaults; i++) {
-		v = *defaults[i].location;
-		fprintf(f, "%s\t\t%i\n", defaults[i].name, v);
+	if(filep == NULL) {
+		/* can't write the file, but don't complain */
+		return;
 	}
 
-	for(i = 0; i < numdefaultstrs; i++) {
-		s = *defaultstrs[i].location;
-		fprintf(f, "%s\t\t\"%s\"\n", defaultstrs[i].name, s);
+	for(int i = 0; i < sizeof(m_misc.defaults.numerics) / sizeof(*m_misc.defaults.numerics); i++) {
+		const int value = *m_misc.defaults.numerics[i].location;
+		fprintf(filep, "%s\t\t%i\n", m_misc.defaults.numerics[i].name, value);
 	}
 
-	fclose(f);
+	for(int i = 0; i < sizeof(m_misc.defaults.strings) / sizeof(*m_misc.defaults.strings); i++) {
+		char * const value = *m_misc.defaults.strings[i].location;
+		fprintf(filep, "%s\t\t\"%s\"\n", m_misc.defaults.strings[i].name, value);
+		free(value);
+	}
+
+	fclose(filep);
+
+	free(m_misc.defaults.file);
 }
-
-//
-// M_LoadDefaults
-//
-extern uint8_t scantokey[128];
 
 void
 M_LoadDefaults(void) {
-	int i;
-	int len;
-	FILE *f;
-	char def[80];
-	char strparm[100];
-	char *newstring;
-	int parm;
-	bool isstring;
 
-	// set everything to base values
-	numdefaults = sizeof(defaults) / sizeof(defaults[0]);
-	for(i = 0; i < numdefaults; i++)
-		*defaults[i].location = defaults[i].defaultvalue;
-	numdefaultstrs = sizeof(defaultstrs) / sizeof(defaultstrs[0]);
-	for(i = 0; i < numdefaultstrs; i++)
-		*defaultstrs[i].location = L_String(defaultstrs[i].defaultvalue);
+	/* Set everything to base values */
+	for(int i = 0; i < sizeof(m_misc.defaults.numerics) / sizeof(*m_misc.defaults.numerics); i++) {
+		*m_misc.defaults.numerics[i].location = m_misc.defaults.numerics[i].defaultvalue;
+	}
 
-	// check for a custom default file
-	i = M_CheckParm("-config");
-	if(i && i < myargc - 1) {
-		defaultfile = myargv[i + 1];
-		printf("	default file: %s\n", defaultfile);
-	} else
-		defaultfile = basedefault;
+	for(int i = 0; i < sizeof(m_misc.defaults.strings) / sizeof(*m_misc.defaults.strings); i++) {
+		*m_misc.defaults.strings[i].location = strdup(L_String(m_misc.defaults.strings[i].defaultvalue));
+	}
 
-	// read the file in, overriding any set defaults
-	f = fopen(defaultfile, "r");
-	if(f) {
-		while(!feof(f)) {
-			isstring = false;
-			if(fscanf(f, "%79s %[^\n]\n", def, strparm) == 2) {
-				if(strparm[0] == '"') {
-					// get a string default
-					isstring         = true;
-					len              = strlen(strparm);
-					newstring        = (char *)malloc(len);
-					strparm[len - 1] = 0;
-					strcpy(newstring, strparm + 1);
-				} else if(strparm[0] == '0' && strparm[1] == 'x')
-					sscanf(strparm + 2, "%x", &parm);
-				else
-					sscanf(strparm, "%i", &parm);
+	/* Check for a custom default file */
+	const char *defaultfile;
 
-				if(!isstring) {
-					for(i = 0; i < numdefaults; i++)
-						if(!strcmp(def, defaults[i].name)) {
-							*defaults[i].location = parm;
-							break;
-						}
-				} else {
-					for(i = 0; i < numdefaultstrs; i++)
-						if(!strcmp(def, defaultstrs[i].name)) {
-							*defaultstrs[i].location = newstring;
-							break;
-						}
-				}
-			}
+	if(M_GetValueParam("config", &defaultfile)) {
+		printf(" default file: %s\n", defaultfile);
+	} else if(devparm) {
+		defaultfile = DEVDATA "default.cfg";
+	} else {
+		const char *home = getenv("HOME");
+
+		if(home == NULL) {
+			I_Error("Please set $HOME to your home directory");
 		}
 
-		fclose(f);
+		defaultfile = M_Format(NULL, "%s/.doomrc", home);
 	}
+
+	m_misc.defaults.file = strdup(defaultfile);
+
+	/* Read the file in, overriding any set defaults */
+	FILE *filep = fopen(m_misc.defaults.file, "r");
+	char value[128], name[18]; /* 18 is the length + 1 of "mouse_sensitivity", the longest one */
+
+	if(filep != NULL) {
+		int line = 1;
+		while(!feof(filep)) {
+			if(fscanf(filep, "%17s %127[^\n]\n", name, value) == 2) {
+
+				if(value[0] == '"') {
+					char *endquote = strrchr(value, '"');
+					if(endquote != NULL) {
+						*endquote = '\0';
+					}
+
+					for(int i = 0; i < sizeof(m_misc.defaults.strings) / sizeof(*m_misc.defaults.strings); i++) {
+						if(strcmp(m_misc.defaults.strings[i].name, name) == 0) {
+							char ** const location = m_misc.defaults.strings[i].location;
+							free(*location);
+							*location = strdup(value + 1);
+							break;
+						}
+					}
+				} else {
+					char *endptr;
+					const long numeric = strtol(value, &endptr, 0);
+
+					if(*endptr != '\0') {
+						I_Error("Invalid numeric value for default '%s': '%s'", name, value);
+					}
+
+					for(int i = 0; i < sizeof(m_misc.defaults.numerics) / sizeof(*m_misc.defaults.numerics); i++) {
+						if(strcmp(m_misc.defaults.numerics[i].name, name) == 0) {
+							*m_misc.defaults.numerics[i].location = numeric;
+							break;
+						}
+					}
+				}
+			} else {
+				I_Error("Invalid line %d of defaults file", line);
+			}
+			line++;
+		}
+
+		fclose(filep);
+	}
+
+	atexit(M_SaveDefaults);
 }
 
 //
@@ -473,4 +481,32 @@ M_ScreenShot(void) {
 	WritePCXfile(lbmname, linear, SCREENWIDTH, SCREENHEIGHT, W_LumpForName("PLAYPAL")->data);
 
 	players[consoleplayer].message = "screen shot";
+}
+
+const char *
+M_Format(size_t *lenp, const char *format, ...) {
+	static char *buffer = NULL;
+	static size_t capacity = 0;
+	size_t required;
+	va_list ap;
+
+	while(va_start(ap, format),
+		required = vsnprintf(buffer, capacity, format, ap),
+		va_end(ap), required >= capacity) {
+		const size_t newcapacity = required + 1;
+		char * const newbuffer = realloc(buffer, newcapacity);
+
+		if(newbuffer == NULL) {
+			I_Error("Unable to allocate memory for format buffer");
+		}
+
+		buffer = newbuffer;
+		capacity = newcapacity;
+	}
+
+	if(lenp != NULL) {
+		*lenp = required;
+	}
+
+	return buffer;
 }

@@ -660,23 +660,24 @@ extern int screenblocks;
 
 void
 R_Init(void) {
+
 	R_InitData();
-	printf("\nR_InitData");
+	puts("R_InitData");
 	R_InitPointToAngle();
-	printf("\nR_InitPointToAngle");
+	puts("R_InitPointToAngle");
 	R_InitTables();
-	// viewwidth / viewheight / detailLevel are set by the defaults
-	printf("\nR_InitTables");
+	/* viewwidth / viewheight / detailLevel are set by the defaults */
+	puts("R_InitTables");
 
 	R_SetViewSize(screenblocks, detailLevel);
 	R_InitPlanes();
-	printf("\nR_InitPlanes");
+	puts("R_InitPlanes");
 	R_InitLightTables();
-	printf("\nR_InitLightTables");
+	puts("R_InitLightTables");
 	R_InitSkyMap();
-	printf("\nR_InitSkyMap");
+	puts("R_InitSkyMap");
 	R_InitTranslationTables();
-	printf("\nR_InitTranslationsTables");
+	puts("R_InitTranslationsTables");
 
 	framecount = 0;
 }

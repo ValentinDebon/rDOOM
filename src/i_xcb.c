@@ -21,7 +21,7 @@
 #include "doomdef.h"
 #include "i_system.h"
 #include "i_error.h"
-#include "m_argv.h"
+#include "m_param.h"
 #include "d_main.h"
 
 #include <stdio.h>
@@ -117,24 +117,16 @@ I_ShutdownXCB(void) {
 
 void
 I_InitXCB(void) {
+
 	/* Arguments */
 
-	if(M_CheckParm("-2") != 0) {
-		i_xcb.window.width = DISPLAYWIDTH * 2;
-		i_xcb.window.height = DISPLAYHEIGHT * 2;
+	int scale = 1;
+	if(M_GetNumericParam("scale", 1, 4, &scale)) {
+		i_xcb.window.width = DISPLAYWIDTH * scale;
+		i_xcb.window.height = DISPLAYHEIGHT * scale;
 	}
 
-	if(M_CheckParm("-3") != 0) {
-		i_xcb.window.width = DISPLAYWIDTH * 3;
-		i_xcb.window.height = DISPLAYHEIGHT * 3;
-	}
-
-	if(M_CheckParm("-4") != 0) {
-		i_xcb.window.width = DISPLAYWIDTH * 4;
-		i_xcb.window.height = DISPLAYHEIGHT * 4;
-	}
-
-	i_xcb.grab_mouse = M_CheckParm("-grabmouse") != 0;
+	i_xcb.grab_mouse = M_CheckParam("grabmouse");
 
 	/* Let's connect to X11 */
 	int screen_number;

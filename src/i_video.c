@@ -51,7 +51,7 @@ I_InitGraphics(void) {
 	switch(i_xcb.visualtype->_class) {
 	case XCB_VISUAL_CLASS_TRUE_COLOR:
 	case XCB_VISUAL_CLASS_DIRECT_COLOR:
-		printf("I_InitGraphics: Initializing for TrueColor/DirectColor visual\n");
+		puts("I_InitGraphics: Initializing for TrueColor/DirectColor visual.");
 		break;
 	default:
 		I_Error("I_InitGraphics: Unsupported class of visual\n");
